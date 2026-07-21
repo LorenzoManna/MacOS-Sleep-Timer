@@ -7,21 +7,19 @@ A sleek, modern macOS application and menu bar tray tool for scheduling system s
 ## 👤 For Users
 
 ### Overview
-SleepTimer allows you to easily set a sleep countdown for your Mac. Once the countdown finishes, your session is securely locked and your Mac enters hibernation mode.
+SleepTimer allows you to easily set a sleep countdown for your Mac. Once the countdown finishes, your screen locks and your Mac safely goes to sleep.
 
 ### Key Features
-- ⭕ **Circular Countdown Progress Ring**: Beautiful animated countdown arc showing remaining time at a glance.
-- ⏱️ **3-Box Duration Input**: Dedicated, large input fields for **Hours** (`h`), **Minutes** (`m`), and **Seconds** (`s`).
-- 🕒 **Live Target Time Calculation**: Instantly displays the exact scheduled hibernation time (`Sleep scheduled for HH:MM:SS`) as you type.
-- ⚡ **Quick Preset Pills**: One-click duration presets (`15m`, `30m`, `45m`, `1h`, `2h`).
-- 🔔 **Menu Bar Integration**: Minimizes cleanly to your macOS menu bar (`00:29:59 😴`). Clicking the menu bar item instantly brings the main timer window back into focus.
-- 🔒 **Secure Hibernation**: Automatically locks your user session (`CGSession`) and initiates safe sleep (`pmset`).
+- ⏱️ **Simple Time Entry**: Type exact hours, minutes, or seconds, or pick quick preset buttons (`15m`, `30m`, `45m`, `1h`, `2h`).
+- 🕒 **Live Clock Preview**: See the exact time your Mac will sleep as you type.
+- ⭕ **Visual Countdown Ring**: See remaining time at a glance with a clean circular ring.
+- 🔔 **Menu Bar Status**: Follow the countdown right from your Mac menu bar.
+- 🔒 **Auto Screen Lock & Sleep**: Locks your screen and puts your Mac to sleep when time runs out.
 
 ### How to Install & Use
-1. Download the latest `SleepTimer-v1.0.0-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
-2. Extract the archive and launch **`SleepTimer.app`**.
-3. Choose a preset or enter your desired duration in hours, minutes, and seconds.
-4. Verify the scheduled sleep time and click **Start Timer**.
+1. Download `SleepTimer-v1.0.0-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
+2. Extract the zip file and launch **`SleepTimer.app`**.
+3. Set your duration and click **Start Timer**.
 
 ---
 
@@ -42,7 +40,7 @@ SleepTimer allows you to easily set a sleep countdown for your Mac. Once the cou
    ```bash
    pip install -r requirements.txt
    ```
-   > **Note**: `tkinter` is built directly into Python's standard library and does not require `pip` installation.
+   > **Note**: `tkinter` is included with standard Python installations.
 
 ### Running from Source
 Execute the main application script:
