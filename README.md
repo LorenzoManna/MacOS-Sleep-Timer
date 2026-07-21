@@ -40,7 +40,13 @@ graph TD
 ### Requirements
 - macOS 11.0 Big Sur or later
 - Python 3.10+
-- `rumps` package (`pip install rumps`)
+
+### Installation
+Install project dependencies using `requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
 
 ---
 
@@ -61,6 +67,7 @@ SleepTimer.app/
 ├── .gitignore
 ├── LICENSE.txt
 ├── README.md
+├── requirements.txt
 └── Contents/
     ├── Info.plist
     ├── MacOS/
