@@ -39,7 +39,7 @@ graph TD
 
 ### Requirements
 - macOS 11.0 Big Sur or later
-- Python 3.10+
+- Python 3.10+ (includes standard `tkinter` library)
 
 ### Installation
 Install project dependencies using `requirements.txt`:
@@ -47,6 +47,8 @@ Install project dependencies using `requirements.txt`:
 ```bash
 pip install -r requirements.txt
 ```
+
+> **Note**: `tkinter` is built directly into Python's standard library and does not require `pip` installation.
 
 ---
 
