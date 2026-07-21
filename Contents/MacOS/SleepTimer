@@ -1,0 +1,506 @@
+#!/usr/local/bin/python3
+import tkinter as tk
+import threading
+import subprocess
+import time
+import sys
+import os
+import signal
+from abc import ABC, abstractmethod
+
+# ── Design System & Color Palette ─────────────────────────────────────────────
+BG          = "#0b0f17"   # Deep sleek slate background
+CARD_BG     = "#131b2e"   # Lighter dark card background
+FG_PRIMARY  = "#ffffff"   # High contrast white
+FG_MUTED    = "#8b9ab0"   # Soft muted blue-grey
+FG_STATUS   = "#a0b4cc"   # Prominent slate-blue for status line
+ACCENT_CYAN = "#00f0ff"   # Electric cyan accent
+ACCENT_BLUE = "#007aff"   # Apple blue accent
+ACCENT_RED  = "#ff3b30"   # Vibrant red for stop state
+PILL_BG     = "#1a2436"   # Background for preset pills
+PILL_HOVER  = "#26354d"   # Hover background for pills
+PILL_BORDER = "#2e3f5c"   # Border color for input card
+
+
+# ── System Power Service Abstraction (DIP) ──────────────────────────────────
+class PowerService(ABC):
+    @abstractmethod
+    def notify(self, message: str, sound: str = "Purr"):
+        pass
+
+    @abstractmethod
+    def lock_and_hibernate(self):
+        pass
+
+
+class MacPowerService(PowerService):
+    def notify(self, message: str, sound: str = "Purr"):
+        script = (f'display notification "{message}" '
+                  f'with title "Sleep Timer" sound name "{sound}"')
+        subprocess.Popen(["osascript", "-e", script],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def lock_and_hibernate(self):
+        lock_cmd = (
+            "/System/Library/CoreServices/Menu Extras/User.menu"
+            "/Contents/Resources/CGSession"
+        )
+        try:
+            subprocess.run([lock_cmd, "-suspend"], check=True,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            subprocess.run(["pmset", "displaysleepnow"],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        time.sleep(2)
+        subprocess.run(["pmset", "-a", "hibernatemode", "25"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["pmset", "sleepnow"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# ── Domain Model (Encapsulated State & Business Logic) ────────────────────────
+class TimerModel:
+    def __init__(self):
+        self.remaining_seconds = 0
+        self.total_seconds = 0
+        self.is_running = False
+
+    def parse_hms(self, hours_str: str, mins_str: str, secs_str: str) -> int:
+        try:
+            h = int(hours_str.strip() or "0")
+        except ValueError:
+            h = 0
+        try:
+            m = int(mins_str.strip() or "0")
+        except ValueError:
+            m = 0
+        try:
+            s = int(secs_str.strip() or "0")
+        except ValueError:
+            s = 0
+        return max(0, h * 3600 + m * 60 + s)
+
+    def format_time(self, seconds: int) -> str:
+        return f"{seconds//3600:02d}:{(seconds%3600)//60:02d}:{seconds%60:02d}"
+
+    def calculate_target_time_str(self, seconds: int) -> str:
+        if seconds <= 0:
+            return "Set duration in hours, mins or secs"
+        target_time = time.strftime('%H:%M:%S', time.localtime(time.time() + seconds))
+        return f"Sleep scheduled for {target_time}"
+
+    def get_progress_fraction(self) -> float:
+        if self.total_seconds <= 0:
+            return 0.0
+        return float(self.remaining_seconds) / float(self.total_seconds)
+
+
+# ── Canvas Graphics Utilities ────────────────────────────────────────────────
+class CanvasGraphics:
+    @staticmethod
+    def draw_rounded_rect(canvas, x1, y1, x2, y2, r=10, **kwargs):
+        points = [
+            x1 + r, y1, x1 + r, y1, x2 - r, y1, x2 - r, y1,
+            x2, y1, x2, y1 + r, x2, y1 + r, x2, y2 - r,
+            x2, y2 - r, x2, y2, x2 - r, y2, x2 - r, y2,
+            x1 + r, y2, x1 + r, y2, x1, y2, x1, y2 - r,
+            x1, y2 - r, x1, y1 + r, x1, y1 + r, x1, y1,
+        ]
+        return canvas.create_polygon(points, smooth=True, **kwargs)
+
+
+# ── Custom Encapsulated Widget ───────────────────────────────────────────────
+class RoundedButton(tk.Canvas):
+    def __init__(self, parent, text, command, width=120, height=40, radius=10,
+                 bg_color=PILL_BG, fg_color=FG_PRIMARY, font=("Helvetica Neue", 11, "bold"),
+                 hover_bg=PILL_HOVER, **kwargs):
+        super().__init__(parent, width=width, height=height, bg=parent["bg"], highlightthickness=0, bd=0, **kwargs)
+        self.command = command
+        self.text = text
+        self.radius = radius
+        self.bg_color = bg_color
+        self.hover_bg = hover_bg
+        self.fg_color = fg_color
+        self.current_bg = bg_color
+        self.font = font
+        self.width = width
+        self.height = height
+
+        self.bind("<Button-1>", lambda e: self.command())
+        self.bind("<Enter>", lambda e: self._on_enter())
+        self.bind("<Leave>", lambda e: self._on_leave())
+
+        self.draw()
+
+    def draw(self):
+        self.delete("all")
+        CanvasGraphics.draw_rounded_rect(self, 1, 1, self.width - 1, self.height - 1, r=self.radius, fill=self.current_bg, outline="")
+        self.create_text(self.width // 2, self.height // 2, text=self.text, fill=self.fg_color, font=self.font)
+
+    def set_text(self, text):
+        self.text = text
+        self.draw()
+
+    def set_colors(self, bg_color, fg_color=None, hover_bg=None):
+        self.bg_color = bg_color
+        self.current_bg = bg_color
+        if fg_color:
+            self.fg_color = fg_color
+        if hover_bg is not None:
+            self.hover_bg = hover_bg
+        self.draw()
+
+    def _on_enter(self):
+        if self.hover_bg:
+            self.current_bg = self.hover_bg
+            self.draw()
+
+    def _on_leave(self):
+        self.current_bg = self.bg_color
+        self.draw()
+
+
+# ── GUI View Component ────────────────────────────────────────────────────────
+class SleepTimerView:
+    def __init__(self, root, controller):
+        self.root = root
+        self.controller = controller
+
+        self.root.title("Sleep Timer")
+        self.root.configure(bg=BG)
+        self.root.resizable(False, False)
+        self.root.geometry("440x475")
+
+        self.hours_var = tk.StringVar(value="0")
+        self.mins_var  = tk.StringVar(value="30")
+        self.secs_var  = tk.StringVar(value="0")
+
+        self.status_var = tk.StringVar(value="")
+        self.active_preset = None
+
+        self._build_ui()
+
+    def _build_ui(self):
+        # Circular Countdown Canvas Area
+        self.canvas_size = 210
+        self.canvas = tk.Canvas(
+            self.root, width=self.canvas_size, height=self.canvas_size,
+            bg=BG, highlightthickness=0
+        )
+        self.canvas.pack(pady=(24, 10))
+
+        # Quick Presets Bar
+        presets_frame = tk.Frame(self.root, bg=BG)
+        presets_frame.pack(pady=(4, 14))
+
+        self.preset_btns = {}
+        presets = [("15m", "15m"), ("30m", "30m"), ("45m", "45m"), ("1h", "1h"), ("2h", "2h")]
+        for label, val in presets:
+            btn = RoundedButton(
+                presets_frame, text=label, command=lambda v=val: self.controller.on_preset_click(v),
+                width=54, height=34, radius=8, bg_color=PILL_BG, hover_bg=PILL_HOVER,
+                font=("Helvetica Neue", 11, "bold")
+            )
+            btn.pack(side=tk.LEFT, padx=4)
+            self.preset_btns[val] = btn
+
+        # Duration Entry Card (Rounded 3 HMS Inputs)
+        card_w, card_h = 380, 56
+        self.input_card_canvas = tk.Canvas(self.root, width=card_w, height=card_h, bg=BG, highlightthickness=0)
+        self.input_card_canvas.pack(pady=(0, 14))
+
+        CanvasGraphics.draw_rounded_rect(self.input_card_canvas, 1, 1, card_w - 1, card_h - 1, r=10, fill=CARD_BG, outline=PILL_BORDER, width=1)
+
+        hms_frame = tk.Frame(self.root, bg=CARD_BG)
+        self.input_card_canvas.create_window(card_w // 2, card_h // 2, window=hms_frame)
+
+        tk.Label(hms_frame, text="Duration:", bg=CARD_BG, fg=FG_MUTED, font=("Helvetica Neue", 13, "bold")).pack(side=tk.LEFT, padx=(0, 10))
+
+        for var, unit in [(self.hours_var, "h"), (self.mins_var, "m"), (self.secs_var, "s")]:
+            entry_box = tk.Entry(
+                hms_frame, textvariable=var, width=3, bg=PILL_BG, fg=FG_PRIMARY,
+                insertbackground=ACCENT_CYAN, font=("Helvetica Neue", 18, "bold"),
+                justify="center", bd=0, highlightthickness=0
+            )
+            entry_box.pack(side=tk.LEFT, padx=(2, 2))
+            entry_box.bind("<Return>", lambda e: self.controller.toggle())
+
+            unit_lbl = tk.Label(hms_frame, text=unit, bg=CARD_BG, fg=FG_MUTED, font=("Helvetica Neue", 13, "bold"))
+            unit_lbl.pack(side=tk.LEFT, padx=(1, 10))
+
+            var.trace_add("write", self.controller.on_duration_changed)
+
+        # Dynamic Status Line
+        self.status_lbl = tk.Label(
+            self.root, textvariable=self.status_var,
+            bg=BG, fg=FG_STATUS, font=("Helvetica Neue", 14, "bold")
+        )
+        self.status_lbl.pack(pady=(0, 14))
+
+        # Main Action Buttons
+        btn_frame = tk.Frame(self.root, bg=BG)
+        btn_frame.pack(pady=(0, 18))
+
+        self.start_btn = RoundedButton(
+            btn_frame, text="Start Timer", command=self.controller.toggle,
+            width=140, height=40, radius=10,
+            bg_color=ACCENT_BLUE, hover_bg="#0066d6",
+            font=("Helvetica Neue", 13, "bold")
+        )
+        self.start_btn.pack(side=tk.LEFT, padx=8)
+
+        self.cancel_btn = RoundedButton(
+            btn_frame, text="Cancel", command=self.controller.cancel,
+            width=110, height=40, radius=10,
+            bg_color=PILL_BG, hover_bg=PILL_HOVER, fg_color=FG_MUTED,
+            font=("Helvetica Neue", 13)
+        )
+        self.cancel_btn.pack(side=tk.LEFT, padx=8)
+
+    def draw_progress_ring(self, fraction: float, remaining_secs: int, is_running: bool):
+        self.canvas.delete("all")
+        cx, cy = self.canvas_size // 2, self.canvas_size // 2
+        r = 88
+        w = 10
+        bbox = (cx - r, cy - r, cx + r, cy + r)
+
+        # Background track
+        self.canvas.create_oval(bbox, outline="#162033", width=w)
+
+        # Active progress arc
+        if fraction > 0:
+            extent = -360 * fraction
+            arc_color = ACCENT_RED if (is_running and remaining_secs <= 60) else ACCENT_CYAN
+            self.canvas.create_arc(
+                bbox, start=90, extent=extent, style="arc",
+                width=w, outline=arc_color
+            )
+
+        # Center countdown text
+        time_text = self.controller.model.format_time(remaining_secs) if is_running else "00:00:00"
+        time_color = ACCENT_RED if (is_running and remaining_secs <= 60) else FG_PRIMARY
+
+        self.canvas.create_text(
+            cx, cy - 8, text=time_text, fill=time_color,
+            font=("Helvetica Neue", 34, "bold")
+        )
+
+        sub_text = "COUNTDOWN" if is_running else "SLEEP TIMER"
+        self.canvas.create_text(
+            cx, cy + 26, text=sub_text, fill=FG_MUTED,
+            font=("Helvetica Neue", 10, "bold")
+        )
+
+    def update_preset_highlights(self, selected_val=None):
+        self.active_preset = selected_val
+        for val, btn in self.preset_btns.items():
+            if val == selected_val:
+                btn.set_colors(ACCENT_BLUE, FG_PRIMARY, hover_bg="#0066d6")
+            else:
+                btn.set_colors(PILL_BG, FG_MUTED, hover_bg=PILL_HOVER)
+
+
+# ── Application Controller (Coordinator & State Synchronizer) ────────────────
+class SleepTimerAppController:
+    def __init__(self, root, power_service: PowerService = None):
+        self.root = root
+        self.model = TimerModel()
+        self.power_service = power_service or MacPowerService()
+
+        self._thread = None
+        self._stop_evt = threading.Event()
+        self._bar_process = None
+
+        self.view = SleepTimerView(self.root, self)
+        self._center_window()
+
+        # Signal listeners for macOS menu bar interaction
+        signal.signal(signal.SIGUSR1, self._handle_sigusr1)
+        signal.signal(signal.SIGUSR2, self._handle_sigusr2)
+        self.root.after(300, self._signal_keepalive)
+
+        self.view.draw_progress_ring(1.0, 0, False)
+        self.on_duration_changed()
+
+    def _signal_keepalive(self):
+        self.root.after(300, self._signal_keepalive)
+
+    def _handle_sigusr1(self, signum, frame):
+        self.root.after(0, self.bring_to_front)
+
+    def _handle_sigusr2(self, signum, frame):
+        self.root.after(0, self.stop)
+
+    def bring_to_front(self):
+        self.root.deiconify()
+        self.root.state('normal')
+        self.root.lift()
+        self.root.attributes('-topmost', True)
+        self.root.attributes('-topmost', False)
+        self.root.focus_force()
+        pid = os.getpid()
+        script = f'tell application "System Events" to set frontmost of first process whose unix id is {pid} to true'
+        subprocess.Popen(["osascript", "-e", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def _center_window(self):
+        self.root.update_idletasks()
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        w, h = 440, 475
+        x = (sw - w) // 2
+        y = (sh - h) // 2
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
+
+    def on_duration_changed(self, *args):
+        if self.model.is_running:
+            return
+
+        total_secs = self.model.parse_hms(
+            self.view.hours_var.get(), self.view.mins_var.get(), self.view.secs_var.get()
+        )
+
+        clean_val = None
+        if total_secs == 15 * 60:
+            clean_val = "15m"
+        elif total_secs == 30 * 60:
+            clean_val = "30m"
+        elif total_secs == 45 * 60:
+            clean_val = "45m"
+        elif total_secs == 3600:
+            clean_val = "1h"
+        elif total_secs == 7200:
+            clean_val = "2h"
+
+        self.view.update_preset_highlights(clean_val)
+        status_msg = self.model.calculate_target_time_str(total_secs)
+        self.view.status_var.set(status_msg)
+        self.view.status_lbl.config(fg=FG_STATUS)
+
+    def on_preset_click(self, val: str):
+        if val == "15m":
+            self.view.hours_var.set("0")
+            self.view.mins_var.set("15")
+            self.view.secs_var.set("0")
+        elif val == "30m":
+            self.view.hours_var.set("0")
+            self.view.mins_var.set("30")
+            self.view.secs_var.set("0")
+        elif val == "45m":
+            self.view.hours_var.set("0")
+            self.view.mins_var.set("45")
+            self.view.secs_var.set("0")
+        elif val == "1h":
+            self.view.hours_var.set("1")
+            self.view.mins_var.set("0")
+            self.view.secs_var.set("0")
+        elif val == "2h":
+            self.view.hours_var.set("2")
+            self.view.mins_var.set("0")
+            self.view.secs_var.set("0")
+
+        if self.model.is_running:
+            self.bring_to_front()
+
+    def toggle(self):
+        if self.model.is_running:
+            self.stop()
+        else:
+            self.start()
+
+    def start(self):
+        secs = self.model.parse_hms(
+            self.view.hours_var.get(), self.view.mins_var.get(), self.view.secs_var.get()
+        )
+        if secs <= 0:
+            self.view.status_var.set("Set duration in hours, mins or secs")
+            self.view.status_lbl.config(fg=ACCENT_RED)
+            return
+
+        self.model.total_seconds = secs
+        self.model.remaining_seconds = secs
+        self.model.is_running = True
+        self._stop_evt.clear()
+
+        self.view.start_btn.set_text("Stop Timer")
+        self.view.start_btn.set_colors(ACCENT_RED, FG_PRIMARY, hover_bg="#e02b2b")
+        self.view.status_lbl.config(fg=FG_STATUS)
+
+        status_msg = self.model.calculate_target_time_str(secs)
+        self.view.status_var.set(status_msg)
+
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+        self.root.iconify()
+        bar_py = os.path.join(os.path.dirname(__file__), "MenuBarTimer.py")
+        self._bar_process = subprocess.Popen([sys.executable, bar_py, str(secs), str(os.getpid())])
+
+    def stop(self):
+        self._stop_evt.set()
+        self.model.is_running = False
+        self.model.remaining_seconds = 0
+
+        self.view.start_btn.set_text("Start Timer")
+        self.view.start_btn.set_colors(ACCENT_BLUE, FG_PRIMARY, hover_bg="#0066d6")
+        self.view.draw_progress_ring(1.0, 0, False)
+        self.on_duration_changed()
+        self.bring_to_front()
+
+        if self._bar_process:
+            self._bar_process.terminate()
+            self._bar_process = None
+
+    def cancel(self):
+        if self.model.is_running:
+            self.stop()
+        else:
+            self.root.destroy()
+
+    def _run(self):
+        warned5 = warned1 = False
+        while self.model.remaining_seconds > 0 and not self._stop_evt.is_set():
+            self.root.after(0, self._tick)
+            if self.model.remaining_seconds <= 300 and not warned5:
+                self.power_service.notify("5 minutes until sleep.", "Purr")
+                warned5 = True
+            if self.model.remaining_seconds <= 60 and not warned1:
+                self.power_service.notify("1 minute until sleep!", "Basso")
+                warned1 = True
+            time.sleep(1)
+            self.model.remaining_seconds -= 1
+
+        if not self._stop_evt.is_set():
+            self.root.after(0, self._fire)
+
+    def _tick(self):
+        frac = self.model.get_progress_fraction()
+        self.view.draw_progress_ring(frac, self.model.remaining_seconds, self.model.is_running)
+
+    def _fire(self):
+        self.model.is_running = False
+        self.model.remaining_seconds = 0
+        self.view.draw_progress_ring(0.0, 0, False)
+        self.view.status_var.set("Locking screen and hibernating…")
+        self.view.status_lbl.config(fg=ACCENT_RED)
+        self.root.update()
+
+        self.power_service.notify("Locking screen and hibernating now.", "Basso")
+
+        if self._bar_process:
+            self._bar_process.terminate()
+            self._bar_process = None
+
+        time.sleep(1.5)
+        self.power_service.lock_and_hibernate()
+        self.root.destroy()
+
+
+# Compatibility alias for launchers/tests
+SleepTimerApp = SleepTimerAppController
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SleepTimerAppController(root)
+    root.mainloop()
