@@ -1,4 +1,4 @@
-# SleepTimer 😴
+# A SleepTimer for MacOS 😴
 
 A sleek, modern macOS application and menu bar tray tool for scheduling system sleep and hibernation.
 
