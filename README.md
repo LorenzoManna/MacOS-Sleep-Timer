@@ -16,14 +16,14 @@ Built in Python using native Tkinter graphics and AppKit menu bar integration (`
 
 ---
 
-## Installation & Requirements
+## Installation & Build Instructions
 
 ### Requirements
 - macOS 11.0 Big Sur or later
 - Python 3.10+ (includes standard `tkinter` library)
 
-### Installation
-Install project dependencies using `requirements.txt`:
+### 1. Install Dependencies
+Install Python dependencies using `requirements.txt`:
 
 ```bash
 pip install -r requirements.txt
@@ -31,14 +31,28 @@ pip install -r requirements.txt
 
 > **Note**: `tkinter` is built directly into Python's standard library and does not require `pip` installation.
 
----
-
-## How to Run
-
-Launch the application directly from the application bundle executable:
+### 2. Build the Application Bundle
+Run the build script to assemble the `SleepTimer.app` bundle in the `dist` directory:
 
 ```bash
-/Applications/SleepTimer.app/Contents/MacOS/SleepTimer
+./build_app.sh
+```
+
+### 3. Install to macOS Applications
+Move the newly built `dist/SleepTimer.app` bundle to your macOS `/Applications` directory:
+
+```bash
+cp -R dist/SleepTimer.app /Applications/
+```
+
+---
+
+## Running the App
+
+After moving `SleepTimer.app` to your `/Applications` directory, launch it via Spotlight, Finder, or Terminal:
+
+```bash
+open /Applications/SleepTimer.app
 ```
 
 ---
@@ -46,10 +60,11 @@ Launch the application directly from the application bundle executable:
 ## Project Structure
 
 ```text
-SleepTimer.app/
+SleepTimer/
 ├── .gitignore
 ├── LICENSE.txt
 ├── README.md
+├── build_app.sh
 ├── requirements.txt
 └── Contents/
     ├── Info.plist
