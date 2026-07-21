@@ -3,7 +3,7 @@
 A sleek, modern macOS application and menu bar tray tool for scheduling system sleep and hibernation.
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="SleepTimer Screenshot" width="350">
+  <img src="assets/screenshot.png" alt="SleepTimer Screenshot" width="500">
 </p>
 
 ---
