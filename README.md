@@ -8,8 +8,6 @@ A sleek, modern macOS application and menu bar tray tool for scheduling system s
 
 ---
 
-## 👤 For Users
-
 ### Overview
 
 SleepTimer allows you to easily set a sleep countdown for your Mac. Once the countdown finishes, your screen locks and your Mac safely goes to sleep.
@@ -21,6 +19,10 @@ SleepTimer allows you to easily set a sleep countdown for your Mac. Once the cou
 - ⭕ **Visual Countdown Ring**: See remaining time at a glance with a clean circular ring.
 - 🔔 **Menu Bar Status**: Follow the countdown right from your Mac menu bar.
 - 🔒 **Auto Screen Lock & Sleep**: Locks your screen and puts your Mac to sleep when time runs out.
+
+---
+
+## 👤 For Users
 
 ### How to Install & Use
 
