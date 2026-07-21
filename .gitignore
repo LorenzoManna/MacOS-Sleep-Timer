@@ -1,7 +1,3 @@
-# Build Artifacts
-dist/
-build/
-
 # Python Bytecode
 __pycache__/
 *.py[cod]
