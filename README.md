@@ -9,6 +9,10 @@ A sleek, modern macOS application and menu bar tray tool for scheduling system s
 ### Overview
 SleepTimer allows you to easily set a sleep countdown for your Mac. Once the countdown finishes, your screen locks and your Mac safely goes to sleep.
 
+<p align="center">
+  <img src="assets/app_screenshot.png" alt="SleepTimer Interface" width="440"/>
+</p>
+
 ### Key Features
 - ⏱️ **Simple Time Entry**: Type exact hours, minutes, or seconds, or pick quick preset buttons (`15m`, `30m`, `45m`, `1h`, `2h`).
 - 🕒 **Live Clock Preview**: See the exact time your Mac will sleep as you type.
@@ -56,6 +60,8 @@ SleepTimer.app/
 ├── LICENSE.txt
 ├── README.md
 ├── requirements.txt
+├── assets/
+│   └── app_screenshot.png
 └── Contents/
     ├── Info.plist
     ├── MacOS/
