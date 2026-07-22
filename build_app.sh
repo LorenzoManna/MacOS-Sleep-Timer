@@ -18,6 +18,10 @@ cp Contents/Resources/AppIcon.icns "$BUILD_DIR/Contents/Resources/"
 chmod +x "$BUILD_DIR/Contents/MacOS/SleepTimer"
 chmod +x "$BUILD_DIR/Contents/MacOS/MenuBarTimer.py"
 
+# Ad-hoc code sign the application bundle
+echo "Ad-hoc code signing bundle..."
+codesign --force --deep --sign - "$BUILD_DIR"
+
 echo "=== Build Complete! ==="
 echo "Application bundle created at: $BUILD_DIR"
 echo "You can now copy it to your Applications folder using:"
