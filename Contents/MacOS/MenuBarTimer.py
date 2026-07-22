@@ -1,12 +1,14 @@
 import sys
 import os
 import signal
+import time
 import rumps
+from Foundation import NSRunLoop, NSRunLoopCommonModes
 
 class TimerBar(rumps.App):
     def __init__(self, remaining, parent_pid=None):
         super().__init__("00:00:00 😴", quit_button=None)
-        self.remaining = remaining
+        self.end_time = time.time() + remaining
         self.parent_pid = parent_pid
 
         self.menu = [
@@ -18,13 +20,20 @@ class TimerBar(rumps.App):
         self.timer = rumps.Timer(self.tick, 1)
         self.timer.start()
 
+        # Add NSTimer to NSRunLoopCommonModes so it updates even while dropdown menu is active
+        if hasattr(self.timer, '_nstimer') and self.timer._nstimer:
+            NSRunLoop.currentRunLoop().addTimer_forMode_(self.timer._nstimer, NSRunLoopCommonModes)
+
+        # Trigger immediate tick update
+        self.tick(None)
+
     def tick(self, sender):
-        if self.remaining <= 0:
+        remaining = max(0, int(round(self.end_time - time.time())))
+        if remaining <= 0:
             rumps.quit_application()
             return
         
-        self.title = f"{self.remaining//3600:02d}:{(self.remaining%3600)//60:02d}:{self.remaining%60:02d} 😴"
-        self.remaining -= 1
+        self.title = f"{remaining//3600:02d}:{(remaining%3600)//60:02d}:{remaining%60:02d} 😴"
 
     def show_app(self, sender):
         if self.parent_pid:
@@ -46,3 +55,4 @@ if __name__ == '__main__':
     parent_pid = int(sys.argv[2]) if len(sys.argv) > 2 else None
     app = TimerBar(remaining, parent_pid)
     app.run()
+

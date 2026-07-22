@@ -459,16 +459,20 @@ class SleepTimerAppController:
 
     def _run(self):
         warned5 = warned1 = False
-        while self.model.remaining_seconds > 0 and not self._stop_evt.is_set():
+        target_end_time = time.time() + self.model.total_seconds
+        while not self._stop_evt.is_set():
+            rem = max(0, int(round(target_end_time - time.time())))
+            self.model.remaining_seconds = rem
             self.root.after(0, self._tick)
-            if self.model.remaining_seconds <= 300 and not warned5:
+            if rem <= 0:
+                break
+            if rem <= 300 and not warned5:
                 self.power_service.notify("5 minutes until sleep.", "Purr")
                 warned5 = True
-            if self.model.remaining_seconds <= 60 and not warned1:
+            if rem <= 60 and not warned1:
                 self.power_service.notify("1 minute until sleep!", "Basso")
                 warned1 = True
             time.sleep(1)
-            self.model.remaining_seconds -= 1
 
         if not self._stop_evt.is_set():
             self.root.after(0, self._fire)
