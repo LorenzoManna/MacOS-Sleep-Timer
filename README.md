@@ -26,16 +26,27 @@ SleepTimer allows you to easily set a sleep countdown for your Mac. Once the cou
 
 ### How to Install & Use
 
-1. Download `SleepTimer-v1.0.0-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
-2. Extract the zip file and move **`SleepTimer.app`** to your **Applications** folder (`/Applications`).
-3. Open **`SleepTimer.app`**, set your duration, and click **Start Timer**.
+1. Download `SleepTimer-v1.1.0-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
+2. Extract the downloaded `.zip` file.
+3. Open Terminal in the extracted folder and run the included installation script:
+   ```bash
+   sudo ./install.sh
+   ```
+4. Open **`SleepTimer.app`** from your **Applications** folder or Launchpad.
 
-> **macOS Security Note**: Because the app is ad-hoc signed, if macOS blocks opening after downloading:
-> - **First Launch**: Right-click (or Control-click) `SleepTimer.app` in Finder $\rightarrow$ select **Open** $\rightarrow$ click **Open**.
-> - Or clear the macOS download quarantine in Terminal:
->   ```bash
->   xattr -cr /Applications/SleepTimer.app
->   ```
+---
+
+### 🛡️ Why `sudo` is Required
+
+When downloading applications directly from GitHub or the web without an Apple Developer code-signing certificate, macOS automatically assigns a **quarantine flag** (`com.apple.quarantine`) to the downloaded files. This causes Gatekeeper to display an error stating:
+> *"Apple could not verify SleepTimer is free of malware..."*
+
+The `install.sh` script does three things:
+1. Automatically installs Python dependencies (`rumps`, `pyobjc-framework-Cocoa`) using `python3 -m pip install -r requirements.txt`.
+2. Moves `SleepTimer.app` into `/Applications` (requiring `sudo` administrative rights to write to system applications directory).
+3. Runs `sudo xattr -cr /Applications/SleepTimer.app`, which recursively clears all extended quarantine attributes (`-c`) and folder metadata (`-r`).
+
+Clearing the quarantine flag tells macOS Gatekeeper that you explicitly trust the application binary so it opens normally without security warnings.
 
 
 ---
