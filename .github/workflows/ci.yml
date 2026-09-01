@@ -1,0 +1,65 @@
+name: CI - Quality Assurance & Tests
+
+# Trigger workflow on every push or pull request to main and feature branches
+on:
+  push:
+    branches: [ "main", "feature/**", "learn-github-actions" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Test & Build (Python ${{ matrix.python-version }})
+    runs-on: macos-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      # Step 1: Check out the repository source code
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python runtime
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Step 3: Install Poetry package manager
+      - name: 📦 Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      # Step 4: Install project dependencies
+      - name: 📥 Install Dependencies
+        run: |
+          poetry install --no-interaction
+
+      # Step 5: Validate macOS Info.plist integrity
+      - name: 🛡️ Validate Info.plist Syntax
+        run: |
+          plutil -lint Contents/Info.plist
+
+      # Step 6: Execute the automated unit test suite
+      - name: 🧪 Run Unit Tests
+        run: |
+          poetry run python -m unittest discover -s tests -v
+
+      # Step 7: Check test coverage
+      - name: 📊 Check Test Coverage
+        run: |
+          poetry run coverage run --source=Contents/MacOS,sleeptimer_build -m unittest discover -s tests
+          poetry run coverage report
+
+      # Step 8: Verify application bundling & packaging
+      - name: 🏗️ Test Application Packaging
+        run: |
+          poetry run build-app
+          test -d dist/SleepTimer.app
+          test -f SleepTimer-v*.zip
