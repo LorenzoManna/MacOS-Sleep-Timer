@@ -102,7 +102,11 @@ sudo chmod -R 755 "$TARGET_DIR/$APP_NAME"
 
 # 5. Clear Gatekeeper quarantine attributes
 echo "🛡️ Clearing macOS quarantine attributes..."
-sudo xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
+if [ -x "/usr/bin/xattr" ]; then
+    sudo /usr/bin/xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
+else
+    sudo xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
+fi
 
 echo ""
 echo "=========================================="
