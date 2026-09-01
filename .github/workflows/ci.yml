@@ -9,12 +9,13 @@ on:
 
 jobs:
   test:
-    name: Test & Build (Python ${{ matrix.python-version }})
-    runs-on: macos-latest
+    name: Test & Build (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os: ["macos-15", "macos-14", "macos-13"]
         python-version: ["3.11", "3.12", "3.13"]
 
     steps:
