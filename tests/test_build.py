@@ -9,7 +9,7 @@ import sleeptimer_build
 
 class TestBuildAutomation(unittest.TestCase):
     def test_version_defined(self):
-        self.assertEqual(sleeptimer_build.VERSION, "0.1.0")
+        self.assertEqual(sleeptimer_build.VERSION, "0.1.1")
 
     def test_project_root_exists(self):
         self.assertTrue(sleeptimer_build.PROJECT_ROOT.exists())
