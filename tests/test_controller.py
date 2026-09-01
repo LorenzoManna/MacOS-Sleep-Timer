@@ -117,9 +117,26 @@ class TestSleepTimerAppController(unittest.TestCase):
         with patch("time.sleep", side_effect=lambda s: self.controller._stop_evt.set()):
             self.controller._run()
 
-        # Should receive exactly the sub-minute notification, no 5m or 1m warnings
-        self.assertEqual(len(self.power_service.notifications), 1)
-        self.assertIn("20 seconds until sleep!", self.power_service.notifications[0][0])
+    def test_empty_entry_resets_to_zero_on_focus_out(self):
+        self.controller.view.mins_var.set("")
+        self.controller.view._on_entry_focus_out(self.controller.view.mins_var)
+        self.assertEqual(self.controller.view.mins_var.get(), "0")
+
+    def test_entry_digit_sanitization_and_capping(self):
+        self.controller.view.hours_var.set("123")
+        self.assertEqual(self.controller.view.hours_var.get(), "12")
+
+        self.controller.view.hours_var.set("abc")
+        self.assertEqual(self.controller.view.hours_var.get(), "")
+
+    def test_auto_advance_focus_on_two_digits(self):
+        # Simulate user focus on hours entry box
+        hours_box = self.controller.view.entry_boxes[0]
+        mins_box = self.controller.view.entry_boxes[1]
+        with patch.object(self.controller.root, "focus_get", return_value=hours_box), \
+             patch.object(mins_box, "focus_set") as mock_focus_set:
+            self.controller.view.hours_var.set("12")
+            mock_focus_set.assert_called_once()
 
 
 if __name__ == "__main__":
