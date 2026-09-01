@@ -69,8 +69,8 @@ MacOS-Sleep-Timer/
 ## 🛠️ Development & Build Workflows
 
 ### Prerequisites
-- macOS 11.0+ (Big Sur or later)
-- Python 3.10+ (Standard library `tkinter` must be available)
+- macOS 14.0+ (Sonoma or later)
+- Python 3.11+ (Standard library `tkinter` must be available)
 - [Poetry](https://python-poetry.org/) (recommended) or `pip`
 
 ### Common Commands
