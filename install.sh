@@ -20,32 +20,31 @@ fi
 
 echo "✓ Python 3 found: $(python3 --version)"
 
-# 2. Install Python dependencies
-echo "📦 Installing required Python dependencies (rumps, pyobjc-framework-Cocoa)..."
-PIP_FLAGS="--quiet"
-if python3 -m pip install --help 2>&1 | grep -q -- "--break-system-packages"; then
-    PIP_FLAGS="$PIP_FLAGS --break-system-packages"
-fi
-
-if ! python3 -m pip install $PIP_FLAGS rumps pyobjc-framework-Cocoa; then
-    echo "⚠️ Warning: Failed standard pip install, attempting with --user flag..."
-    python3 -m pip install --quiet --user rumps pyobjc-framework-Cocoa
-fi
-echo "✓ Python dependencies installed."
-
-# 3. Locate or download SleepTimer.app bundle
-SCRIPT_DIR=""
-if [ -n "${BASH_SOURCE[0]}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-fi
-
-TEMP_DIR=""
+TEMP_DIR=$(mktemp -d)
 cleanup() {
     if [ -n "$TEMP_DIR" ] && [ -d "$TEMP_DIR" ]; then
         rm -rf "$TEMP_DIR"
     fi
 }
 trap cleanup EXIT
+
+# 2. Check & install Python dependencies
+echo "📦 Checking Python dependencies (rumps, pyobjc-framework-Cocoa)..."
+if (cd "$TEMP_DIR" && python3 -c "import rumps, Foundation" 2>/dev/null); then
+    echo "✓ Python dependencies already installed."
+else
+    echo "Installing required Python dependencies..."
+    PIP_FLAGS="--quiet"
+    if (cd "$TEMP_DIR" && python3 -m pip install --help 2>&1 | grep -q -- "--break-system-packages"); then
+        PIP_FLAGS="$PIP_FLAGS --break-system-packages"
+    fi
+
+    if ! (cd "$TEMP_DIR" && python3 -m pip install $PIP_FLAGS rumps pyobjc-framework-Cocoa); then
+        echo "⚠️ Warning: Failed standard pip install, attempting with --user flag..."
+        (cd "$TEMP_DIR" && python3 -m pip install --quiet --user rumps pyobjc-framework-Cocoa) || true
+    fi
+    echo "✓ Python dependencies installed."
+fi
 
 SOURCE_APP=""
 

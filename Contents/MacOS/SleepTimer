@@ -35,8 +35,17 @@ class PowerService(ABC):
 
 class MacPowerService(PowerService):
     def notify(self, message: str, sound: str = "Purr"):
-        script = (f'display notification "{message}" '
-                  f'with title "Sleep Timer" sound name "{sound}"')
+        script = (
+            'try\n'
+            f'    tell application id "com.local.sleeptimer" to display notification "{message}" with title "Sleep Timer" sound name "{sound}"\n'
+            'on error\n'
+            '    try\n'
+            f'        tell application "SleepTimer" to display notification "{message}" with title "Sleep Timer" sound name "{sound}"\n'
+            '    on error\n'
+            f'        display notification "{message}" with title "Sleep Timer" sound name "{sound}"\n'
+            '    end try\n'
+            'end try'
+        )
         subprocess.Popen(["osascript", "-e", script],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
@@ -458,18 +467,25 @@ class SleepTimerAppController:
             self.root.destroy()
 
     def _run(self):
-        warned5 = warned1 = False
-        target_end_time = time.time() + self.model.total_seconds
+        total = self.model.total_seconds
+        warned5 = total <= 300
+        warned1 = total <= 60
+        warned_sub_minute = False
+
+        target_end_time = time.time() + total
         while not self._stop_evt.is_set():
             rem = max(0, int(round(target_end_time - time.time())))
             self.model.remaining_seconds = rem
             self.root.after(0, self._tick)
             if rem <= 0:
                 break
-            if rem <= 300 and not warned5:
+            if total < 60 and not warned_sub_minute:
+                self.power_service.notify(f"{rem} seconds until sleep!", "Purr")
+                warned_sub_minute = True
+            elif rem <= 300 and not warned5:
                 self.power_service.notify("5 minutes until sleep.", "Purr")
                 warned5 = True
-            if rem <= 60 and not warned1:
+            elif rem <= 60 and not warned1:
                 self.power_service.notify("1 minute until sleep!", "Basso")
                 warned1 = True
             time.sleep(1)

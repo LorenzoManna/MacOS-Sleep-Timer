@@ -47,6 +47,7 @@ class TestPowerService(unittest.TestCase):
         self.assertEqual(args[0][0], "osascript")
         self.assertIn('Test Message', args[0][2])
         self.assertIn('Purr', args[0][2])
+        self.assertIn('com.local.sleeptimer', args[0][2])
 
     @patch("time.sleep")
     @patch("subprocess.run")

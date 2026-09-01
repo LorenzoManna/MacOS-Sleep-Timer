@@ -108,6 +108,19 @@ class TestSleepTimerAppController(unittest.TestCase):
             self.assertTrue(self.power_service.hibernated)
             self.assertEqual(len(self.power_service.notifications), 1)
 
+    def test_sub_minute_notification_sends_exact_seconds(self):
+        self.controller.model.total_seconds = 20
+        self.controller.model.remaining_seconds = 20
+        self.controller._stop_evt.clear()
+
+        # Simulate one iteration of _run loop
+        with patch("time.sleep", side_effect=lambda s: self.controller._stop_evt.set()):
+            self.controller._run()
+
+        # Should receive exactly the sub-minute notification, no 5m or 1m warnings
+        self.assertEqual(len(self.power_service.notifications), 1)
+        self.assertIn("20 seconds until sleep!", self.power_service.notifications[0][0])
+
 
 if __name__ == "__main__":
     unittest.main()
