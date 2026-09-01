@@ -69,8 +69,8 @@ Clearing the quarantine flag tells macOS Gatekeeper that you explicitly trust th
 
 ### Prerequisites
 
-- macOS 11.0 (Big Sur) or later
-- Python 3.10+
+- macOS 14.0 (Sonoma) or later
+- Python 3.11+
 
 ### Setup & Dependencies
 

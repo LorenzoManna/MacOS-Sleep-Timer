@@ -13,12 +13,18 @@ echo "=========================================="
 
 # 1. Verify Python 3 installation
 if ! command -v python3 &> /dev/null; then
-    echo "❌ Error: Python 3 is required but not installed."
-    echo "Please install Python 3 from https://www.python.org/ or via Homebrew ('brew install python')."
+    echo "❌ Error: Python 3.11+ is required but not installed."
+    echo "Please install Python 3.11+ from https://www.python.org/ or via Homebrew ('brew install python')."
     exit 1
 fi
 
-echo "✓ Python 3 found: $(python3 --version)"
+if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" 2>/dev/null; then
+    echo "❌ Error: Python 3.11 or later is required (found $(python3 --version))."
+    echo "Please upgrade Python via Homebrew ('brew install python') or from https://www.python.org/."
+    exit 1
+fi
+
+echo "✓ Python found: $(python3 --version)"
 
 TEMP_DIR=$(mktemp -d)
 cleanup() {
