@@ -219,19 +219,30 @@ class SleepTimerView:
 
         tk.Label(hms_frame, text="Duration:", bg=CARD_BG, fg=FG_MUTED, font=("Helvetica Neue", 13, "bold")).pack(side=tk.LEFT, padx=(0, 10))
 
-        for var, unit in [(self.hours_var, "h"), (self.mins_var, "m"), (self.secs_var, "s")]:
+        self.entry_boxes = []
+        entries_data = [
+            (self.hours_var, "h", 0),
+            (self.mins_var, "m", 1),
+            (self.secs_var, "s", 2)
+        ]
+
+        for var, unit, idx in entries_data:
             entry_box = tk.Entry(
                 hms_frame, textvariable=var, width=3, bg=PILL_BG, fg=FG_PRIMARY,
                 insertbackground=ACCENT_CYAN, font=("Helvetica Neue", 18, "bold"),
                 justify="center", bd=0, highlightthickness=0
             )
             entry_box.pack(side=tk.LEFT, padx=(2, 2))
+            self.entry_boxes.append(entry_box)
+
+            entry_box.bind("<FocusIn>", lambda e, eb=entry_box: eb.select_range(0, tk.END))
+            entry_box.bind("<FocusOut>", lambda e, v=var: self._on_entry_focus_out(v))
             entry_box.bind("<Return>", lambda e: self.controller.toggle())
 
             unit_lbl = tk.Label(hms_frame, text=unit, bg=CARD_BG, fg=FG_MUTED, font=("Helvetica Neue", 13, "bold"))
             unit_lbl.pack(side=tk.LEFT, padx=(1, 10))
 
-            var.trace_add("write", self.controller.on_duration_changed)
+            var.trace_add("write", lambda *args, v=var, i=idx: self._on_entry_var_changed(v, i))
 
         # Dynamic Status Line
         self.status_lbl = tk.Label(
@@ -259,6 +270,31 @@ class SleepTimerView:
             font=("Helvetica Neue", 13)
         )
         self.cancel_btn.pack(side=tk.LEFT, padx=8)
+
+    def _on_entry_focus_out(self, var: tk.StringVar):
+        if not var.get().strip():
+            var.set("0")
+
+    def _on_entry_var_changed(self, var: tk.StringVar, index: int):
+        raw = var.get()
+        digits = "".join(c for c in raw if c.isdigit())
+        if len(digits) > 2:
+            digits = digits[:2]
+        if digits != raw:
+            var.set(digits)
+            return
+
+        # If 2 digits have been typed and this entry currently has user focus, jump to next field
+        if len(digits) == 2 and index < len(self.entry_boxes) - 1:
+            try:
+                if self.root.focus_get() == self.entry_boxes[index]:
+                    next_box = self.entry_boxes[index + 1]
+                    next_box.focus_set()
+                    next_box.select_range(0, tk.END)
+            except Exception:
+                pass
+
+        self.controller.on_duration_changed()
 
     def draw_progress_ring(self, fraction: float, remaining_secs: int, is_running: bool):
         self.canvas.delete("all")
@@ -411,6 +447,10 @@ class SleepTimerAppController:
             self.start()
 
     def start(self):
+        for var in [self.view.hours_var, self.view.mins_var, self.view.secs_var]:
+            if not var.get().strip():
+                var.set("0")
+
         secs = self.model.parse_hms(
             self.view.hours_var.get(), self.view.mins_var.get(), self.view.secs_var.get()
         )
