@@ -174,9 +174,9 @@ class SleepTimerView:
         self.root.resizable(False, False)
         self.root.geometry("440x475")
 
-        self.hours_var = tk.StringVar(value="0")
+        self.hours_var = tk.StringVar(value="00")
         self.mins_var  = tk.StringVar(value="30")
-        self.secs_var  = tk.StringVar(value="0")
+        self.secs_var  = tk.StringVar(value="00")
 
         self.status_var = tk.StringVar(value="")
         self.active_preset = None
@@ -273,7 +273,7 @@ class SleepTimerView:
 
     def _on_entry_focus_out(self, var: tk.StringVar):
         if not var.get().strip():
-            var.set("0")
+            var.set("00")
 
     def _on_entry_var_changed(self, var: tk.StringVar, index: int):
         raw = var.get()
@@ -417,25 +417,25 @@ class SleepTimerAppController:
 
     def on_preset_click(self, val: str):
         if val == "15m":
-            self.view.hours_var.set("0")
+            self.view.hours_var.set("00")
             self.view.mins_var.set("15")
-            self.view.secs_var.set("0")
+            self.view.secs_var.set("00")
         elif val == "30m":
-            self.view.hours_var.set("0")
+            self.view.hours_var.set("00")
             self.view.mins_var.set("30")
-            self.view.secs_var.set("0")
+            self.view.secs_var.set("00")
         elif val == "45m":
-            self.view.hours_var.set("0")
+            self.view.hours_var.set("00")
             self.view.mins_var.set("45")
-            self.view.secs_var.set("0")
+            self.view.secs_var.set("00")
         elif val == "1h":
-            self.view.hours_var.set("1")
-            self.view.mins_var.set("0")
-            self.view.secs_var.set("0")
+            self.view.hours_var.set("01")
+            self.view.mins_var.set("00")
+            self.view.secs_var.set("00")
         elif val == "2h":
-            self.view.hours_var.set("2")
-            self.view.mins_var.set("0")
-            self.view.secs_var.set("0")
+            self.view.hours_var.set("02")
+            self.view.mins_var.set("00")
+            self.view.secs_var.set("00")
 
         if self.model.is_running:
             self.bring_to_front()
@@ -449,7 +449,7 @@ class SleepTimerAppController:
     def start(self):
         for var in [self.view.hours_var, self.view.mins_var, self.view.secs_var]:
             if not var.get().strip():
-                var.set("0")
+                var.set("00")
 
         secs = self.model.parse_hms(
             self.view.hours_var.get(), self.view.mins_var.get(), self.view.secs_var.get()

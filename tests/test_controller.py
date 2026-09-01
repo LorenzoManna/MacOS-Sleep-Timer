@@ -55,15 +55,18 @@ class TestSleepTimerAppController(unittest.TestCase):
     def test_preset_clicks(self):
         self.controller.on_preset_click("15m")
         self.assertEqual(self.controller.view.mins_var.get(), "15")
-        self.assertEqual(self.controller.view.hours_var.get(), "0")
+        self.assertEqual(self.controller.view.hours_var.get(), "00")
+        self.assertEqual(self.controller.view.secs_var.get(), "00")
 
         self.controller.on_preset_click("1h")
-        self.assertEqual(self.controller.view.hours_var.get(), "1")
-        self.assertEqual(self.controller.view.mins_var.get(), "0")
+        self.assertEqual(self.controller.view.hours_var.get(), "01")
+        self.assertEqual(self.controller.view.mins_var.get(), "00")
+        self.assertEqual(self.controller.view.secs_var.get(), "00")
 
         self.controller.on_preset_click("2h")
-        self.assertEqual(self.controller.view.hours_var.get(), "2")
-        self.assertEqual(self.controller.view.mins_var.get(), "0")
+        self.assertEqual(self.controller.view.hours_var.get(), "02")
+        self.assertEqual(self.controller.view.mins_var.get(), "00")
+        self.assertEqual(self.controller.view.secs_var.get(), "00")
 
     def test_start_with_zero_seconds_fails_validation(self):
         self.controller.view.hours_var.set("0")
@@ -120,7 +123,7 @@ class TestSleepTimerAppController(unittest.TestCase):
     def test_empty_entry_resets_to_zero_on_focus_out(self):
         self.controller.view.mins_var.set("")
         self.controller.view._on_entry_focus_out(self.controller.view.mins_var)
-        self.assertEqual(self.controller.view.mins_var.get(), "0")
+        self.assertEqual(self.controller.view.mins_var.get(), "00")
 
     def test_entry_digit_sanitization_and_capping(self):
         self.controller.view.hours_var.set("123")
