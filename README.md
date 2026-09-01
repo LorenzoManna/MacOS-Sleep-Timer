@@ -26,16 +26,16 @@ SleepTimer allows you to easily set a sleep countdown for your Mac. Once the cou
 
 ### How to Install & Use
 
-#### Option 1: Quick Install via Git (One-liner)
-
-```bash
-git clone https://github.com/LorenzoManna/MacOS-Sleep-Timer.git && cd MacOS-Sleep-Timer && ./install.sh
-```
-
-#### Option 2: Quick Install via `curl`
+#### Option 1: Quick Install via `curl` (One-liner)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/LorenzoManna/MacOS-Sleep-Timer/main/install.sh | bash
+```
+
+#### Option 2: Install via Git (One-liner)
+
+```bash
+git clone https://github.com/LorenzoManna/MacOS-Sleep-Timer.git && cd MacOS-Sleep-Timer && ./install.sh
 ```
 
 #### Option 3: Manual Download (.zip)
