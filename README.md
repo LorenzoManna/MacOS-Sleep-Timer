@@ -40,7 +40,7 @@ git clone https://github.com/LorenzoManna/MacOS-Sleep-Timer.git && cd MacOS-Slee
 
 #### Option 3: Manual Download (.zip)
 
-1. Download `SleepTimer-v0.1.0-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
+1. Download `SleepTimer-v0.1.1-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
 2. Extract the downloaded `.zip` file.
 3. Open Terminal in the extracted folder and run:
    ```bash

@@ -62,7 +62,7 @@ else
     # Remote curl/pipe mode: download from GitHub
     echo "📥 Downloading latest SleepTimer release..."
     TEMP_DIR=$(mktemp -d)
-    ZIP_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/latest/download/SleepTimer-v0.1.0-macOS.zip"
+    ZIP_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/latest/download/SleepTimer-v0.1.1-macOS.zip"
     FALLBACK_URL="https://github.com/$REPO_OWNER/$REPO_NAME/archive/refs/heads/main.zip"
     
     if curl -fsSL -o "$TEMP_DIR/bundle.zip" "$ZIP_URL" 2>/dev/null; then

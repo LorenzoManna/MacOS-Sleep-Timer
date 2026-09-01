@@ -29,7 +29,7 @@ cp install.sh "$DIST_DIR/install.sh"
 chmod +x "$DIST_DIR/install.sh"
 
 # Create zip archive containing SleepTimer.app, install.sh, and requirements.txt
-ZIP_NAME="SleepTimer-v0.1.0-macOS.zip"
+ZIP_NAME="SleepTimer-v0.1.1-macOS.zip"
 (cd "$DIST_DIR" && zip -r -q "../$ZIP_NAME" SleepTimer.app install.sh requirements.txt)
 
 echo "=== Build Complete! ==="
