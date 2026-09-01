@@ -34,20 +34,37 @@ class PowerService(ABC):
 
 
 class MacPowerService(PowerService):
+    def __init__(self):
+        self._setup_bundle_identity()
+
+    def _setup_bundle_identity(self):
+        try:
+            import objc
+            from Foundation import NSBundle
+            if NSBundle.mainBundle().bundleIdentifier() != "com.local.sleeptimer":
+                class NSBundle(objc.Category(NSBundle)):
+                    def bundleIdentifier(self):
+                        return "com.local.sleeptimer"
+        except Exception:
+            pass
+
+    def _send_cocoa_notification(self, message: str, sound: str):
+        from Foundation import NSUserNotification, NSUserNotificationCenter
+        notif = NSUserNotification.alloc().init()
+        notif.setTitle_("Sleep Timer")
+        notif.setInformativeText_(message)
+        notif.setSoundName_(sound)
+
+        center = NSUserNotificationCenter.defaultUserNotificationCenter()
+        center.deliverNotification_(notif)
+
     def notify(self, message: str, sound: str = "Purr"):
-        script = (
-            'try\n'
-            f'    tell application id "com.local.sleeptimer" to display notification "{message}" with title "Sleep Timer" sound name "{sound}"\n'
-            'on error\n'
-            '    try\n'
-            f'        tell application "SleepTimer" to display notification "{message}" with title "Sleep Timer" sound name "{sound}"\n'
-            '    on error\n'
-            f'        display notification "{message}" with title "Sleep Timer" sound name "{sound}"\n'
-            '    end try\n'
-            'end try'
-        )
-        subprocess.Popen(["osascript", "-e", script],
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            self._send_cocoa_notification(message, sound)
+        except Exception:
+            script = f'display notification "{message}" with title "Sleep Timer" sound name "{sound}"'
+            subprocess.Popen(["osascript", "-e", script],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def lock_and_hibernate(self):
         lock_cmd = (

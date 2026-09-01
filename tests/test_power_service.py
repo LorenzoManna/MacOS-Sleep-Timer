@@ -38,16 +38,22 @@ class TestPowerService(unittest.TestCase):
         service.lock_and_hibernate()
         self.assertTrue(service.hibernated)
 
-    @patch("subprocess.Popen")
-    def test_mac_power_service_notify(self, mock_popen):
+    def test_mac_power_service_notify_calls_cocoa(self):
         service = MacPowerService()
-        service.notify("Test Message", "Purr")
-        mock_popen.assert_called_once()
-        args, kwargs = mock_popen.call_args
-        self.assertEqual(args[0][0], "osascript")
-        self.assertIn('Test Message', args[0][2])
-        self.assertIn('Purr', args[0][2])
-        self.assertIn('com.local.sleeptimer', args[0][2])
+        with patch.object(service, "_send_cocoa_notification") as mock_cocoa:
+            service.notify("Test Message", "Purr")
+            mock_cocoa.assert_called_once_with("Test Message", "Purr")
+
+    @patch("subprocess.Popen")
+    def test_mac_power_service_notify_fallback(self, mock_popen):
+        service = MacPowerService()
+        with patch.object(service, "_send_cocoa_notification", side_effect=Exception("Cocoa Error")):
+            service.notify("Fallback Message", "Basso")
+            mock_popen.assert_called_once()
+            args, kwargs = mock_popen.call_args
+            self.assertEqual(args[0][0], "osascript")
+            self.assertIn('Fallback Message', args[0][2])
+            self.assertIn('Basso', args[0][2])
 
     @patch("time.sleep")
     @patch("subprocess.run")
