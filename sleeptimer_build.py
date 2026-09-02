@@ -82,22 +82,53 @@ def build() -> None:
     if build_dir.exists():
         shutil.rmtree(build_dir)
 
-    # Create release zip archive
+    # Create release zip archive with symlink and bundle preservation
     zip_path = PROJECT_ROOT / ZIP_NAME
-    print(f"Creating release archive: {ZIP_NAME}...")
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for file in ["install.sh", "requirements.txt"]:
-            zipf.write(DIST_DIR / file, arcname=file)
-
-        for root, _, files in os.walk(APP_DIR):
-            for file in files:
-                full_path = Path(root) / file
-                rel_path = full_path.relative_to(DIST_DIR)
-                zipf.write(full_path, arcname=str(rel_path))
+    create_release_archive(DIST_DIR, zip_path)
 
     print("=== Build Complete! ===")
     print(f"Standalone Application bundle: {APP_DIR}")
     print(f"Release archive:               {zip_path}")
+
+
+def create_release_archive(dist_dir: Path, zip_path: Path) -> None:
+    """Create release zip archive preserving symlinks, permissions, and code signatures."""
+    if zip_path.exists():
+        zip_path.unlink()
+
+    print(f"Creating release archive: {zip_path.name}...")
+
+    # Prefer macOS native ditto tool which guarantees 100% fidelity for .app bundles
+    if shutil.which("ditto"):
+        subprocess.run(
+            ["ditto", "-c", "-k", "--sequesterRsrc", str(dist_dir), str(zip_path)],
+            check=True,
+        )
+        return
+
+    # Fallback to zip utility with -y (preserve symlinks)
+    if shutil.which("zip"):
+        subprocess.run(
+            ["zip", "-y", "-r", "-q", str(zip_path.resolve()), "."],
+            cwd=str(dist_dir),
+            check=True,
+        )
+        return
+
+    # Fallback to Python zipfile with symlink preservation
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(dist_dir):
+            for file in files:
+                full_path = Path(root) / file
+                rel_path = full_path.relative_to(dist_dir)
+                if full_path.is_symlink():
+                    link_target = os.readlink(full_path)
+                    zinfo = zipfile.ZipInfo(str(rel_path))
+                    zinfo.create_system = 3  # Unix
+                    zinfo.external_attr = 0o120755 << 16
+                    zipf.writestr(zinfo, link_target)
+                else:
+                    zipf.write(full_path, arcname=str(rel_path))
 
 
 def run_app() -> None:

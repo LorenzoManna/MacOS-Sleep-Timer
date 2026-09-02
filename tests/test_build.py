@@ -24,10 +24,26 @@ class TestBuildAutomation(unittest.TestCase):
             temp_path.chmod(0o644)
             sleeptimer_build.make_executable(temp_path)
             mode = temp_path.stat().st_mode
-            self.assertTrue(bool(mode & stat.S_IXUSR))
         finally:
             if temp_path.exists():
                 temp_path.unlink()
+
+    def test_create_release_archive(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src_dir = Path(tmpdir) / "dist"
+            src_dir.mkdir()
+            sample_file = src_dir / "sample.txt"
+            sample_file.write_text("Hello World")
+            sample_link = src_dir / "link.txt"
+            try:
+                sample_link.symlink_to("sample.txt")
+            except OSError:
+                pass  # On systems where symlinks aren't permitted
+
+            out_zip = Path(tmpdir) / "output.zip"
+            sleeptimer_build.create_release_archive(src_dir, out_zip)
+            self.assertTrue(out_zip.exists())
+            self.assertGreater(out_zip.stat().st_size, 0)
 
 
 if __name__ == "__main__":

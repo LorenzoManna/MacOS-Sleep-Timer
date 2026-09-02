@@ -5,7 +5,7 @@ set -e
 REPO_OWNER="LorenzoManna"
 REPO_NAME="MacOS-Sleep-Timer"
 APP_NAME="SleepTimer.app"
-TARGET_DIR="/Applications"
+TARGET_DIR="${TARGET_DIR:-/Applications}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
 
 echo "=========================================="
@@ -42,19 +42,35 @@ else
     FALLBACK_URL="https://github.com/$REPO_OWNER/$REPO_NAME/archive/refs/heads/main.zip"
     
     if curl -fsSL -o "$TEMP_DIR/bundle.zip" "$ZIP_URL" 2>/dev/null; then
-        unzip -q -o "$TEMP_DIR/bundle.zip" -d "$TEMP_DIR"
+        if command -v ditto &>/dev/null; then
+            ditto -x -k "$TEMP_DIR/bundle.zip" "$TEMP_DIR"
+        else
+            unzip -q -o "$TEMP_DIR/bundle.zip" -d "$TEMP_DIR"
+        fi
         SOURCE_APP="$TEMP_DIR/$APP_NAME"
     elif curl -fsSL -o "$TEMP_DIR/repo.zip" "$FALLBACK_URL" 2>/dev/null; then
-        unzip -q -o "$TEMP_DIR/repo.zip" -d "$TEMP_DIR"
+        if command -v ditto &>/dev/null; then
+            ditto -x -k "$TEMP_DIR/repo.zip" "$TEMP_DIR"
+        else
+            unzip -q -o "$TEMP_DIR/repo.zip" -d "$TEMP_DIR"
+        fi
         mkdir -p "$TEMP_DIR/$APP_NAME"
-        cp -R "$TEMP_DIR/$REPO_NAME-main/Contents" "$TEMP_DIR/$APP_NAME/"
+        if command -v ditto &>/dev/null; then
+            ditto "$TEMP_DIR/$REPO_NAME-main/Contents" "$TEMP_DIR/$APP_NAME/Contents"
+        else
+            cp -R "$TEMP_DIR/$REPO_NAME-main/Contents" "$TEMP_DIR/$APP_NAME/"
+        fi
         chmod +x "$TEMP_DIR/$APP_NAME/Contents/MacOS/"*
         SOURCE_APP="$TEMP_DIR/$APP_NAME"
     else
         echo "Fetching repository via git..."
         git clone --depth 1 "https://github.com/$REPO_OWNER/$REPO_NAME.git" "$TEMP_DIR/repo"
         mkdir -p "$TEMP_DIR/$APP_NAME"
-        cp -R "$TEMP_DIR/repo/Contents" "$TEMP_DIR/$APP_NAME/"
+        if command -v ditto &>/dev/null; then
+            ditto "$TEMP_DIR/repo/Contents" "$TEMP_DIR/$APP_NAME/Contents"
+        else
+            cp -R "$TEMP_DIR/repo/Contents" "$TEMP_DIR/$APP_NAME/"
+        fi
         chmod +x "$TEMP_DIR/$APP_NAME/Contents/MacOS/"*
         SOURCE_APP="$TEMP_DIR/$APP_NAME"
     fi
@@ -102,22 +118,42 @@ else
     fi
 fi
 
-# 4. Install into /Applications
+# 3. Determine permissions & target directory
+TARGET_DIR="${TARGET_DIR:-/Applications}"
+USE_SUDO=false
+
+if [ ! -w "$TARGET_DIR" ]; then
+    USE_SUDO=true
+fi
+
+run_cmd() {
+    if [ "$USE_SUDO" = true ]; then
+        sudo "$@"
+    else
+        "$@"
+    fi
+}
+
+# 4. Install into TARGET_DIR
 echo "🚀 Installing $APP_NAME to $TARGET_DIR..."
 if [ -d "$TARGET_DIR/$APP_NAME" ]; then
     echo "Removing previous installation..."
-    sudo rm -rf "$TARGET_DIR/$APP_NAME"
+    run_cmd rm -rf "$TARGET_DIR/$APP_NAME"
 fi
 
-sudo cp -R "$SOURCE_APP" "$TARGET_DIR/"
-sudo chmod -R 755 "$TARGET_DIR/$APP_NAME"
+if command -v ditto &>/dev/null; then
+    run_cmd ditto "$SOURCE_APP" "$TARGET_DIR/$APP_NAME"
+else
+    run_cmd cp -a "$SOURCE_APP" "$TARGET_DIR/"
+fi
+run_cmd chmod -R 755 "$TARGET_DIR/$APP_NAME"
 
 # 5. Clear Gatekeeper quarantine attributes
 echo "🛡️ Clearing macOS quarantine attributes..."
 if [ -x "/usr/bin/xattr" ]; then
-    sudo /usr/bin/xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
+    run_cmd /usr/bin/xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
 else
-    sudo xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
+    run_cmd xattr -cr "$TARGET_DIR/$APP_NAME" 2>/dev/null || true
 fi
 
 echo ""
