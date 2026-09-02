@@ -36,7 +36,11 @@ curl -fsSL https://raw.githubusercontent.com/LorenzoManna/MacOS-Sleep-Timer/main
 
 1. Download **`SleepTimer-v0.2.0-macOS.zip`** from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
 2. Extract the `.zip` file and drag **`SleepTimer.app`** into your **Applications** folder.
-3. **First Launch**: Right-click (or Control-click) `SleepTimer.app` in Applications ➔ select **Open** ➔ click **Open**. *(You only need to do this once).*
+3. **First Launch (macOS Gatekeeper)**:
+   - Double-click `SleepTimer.app` (if blocked by macOS, click **Done**).
+   - Go to **System Settings** ➔ **Privacy & Security**, scroll down to **Security**, and click **Open Anyway**.
+   - *(Or run `xattr -cr /Applications/SleepTimer.app` in Terminal).*
+   - *(You only need to do this once—macOS remembers your approval permanently).*
 
 
 ---

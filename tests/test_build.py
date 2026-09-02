@@ -51,6 +51,7 @@ class TestBuildAutomation(unittest.TestCase):
         self.assertIn("HOW TO INSTALL", readme)
         self.assertIn("Applications", readme)
         self.assertIn("FIRST LAUNCH NOTE", readme)
+        self.assertIn("Open Anyway", readme)
         self.assertIn("LICENSE", readme)
 
 

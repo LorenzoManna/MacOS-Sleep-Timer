@@ -132,10 +132,14 @@ Because SleepTimer is an open-source utility distributed outside
 the Mac App Store, macOS may display a message on first launch stating:
 "Apple cannot verify SleepTimer is free of malware..."
 
-To open SleepTimer easily without Terminal:
-1. Right-Click (or Control-Click) "SleepTimer.app" in Applications.
-2. Select "Open" from the context menu.
-3. Click "Open" in the dialog that appears.
+To authorize SleepTimer:
+1. Double-click "SleepTimer.app" (if blocked, click "Done").
+2. Open System Settings -> Privacy & Security.
+3. Scroll down to the "Security" section and click "Open Anyway".
+4. Enter your Mac password or Touch ID.
+
+Alternatively, via Terminal:
+  xattr -cr /Applications/SleepTimer.app
 
 macOS will remember this approval permanently, and SleepTimer will
 open normally with a simple double-click from then on.
