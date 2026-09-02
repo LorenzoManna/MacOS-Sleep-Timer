@@ -24,36 +24,63 @@ def make_executable(path: Path) -> None:
 
 
 def build() -> None:
-    """Build macOS .app bundle and release zip archive."""
-    print("=== Building SleepTimer.app Bundle with Poetry Automation ===")
+    """Build standalone zero-dependency macOS .app bundle and release zip archive."""
+    print("=== Building Standalone SleepTimer.app Bundle with PyInstaller ===")
 
     # Clean previous builds
     if DIST_DIR.exists():
         shutil.rmtree(DIST_DIR)
+    build_dir = PROJECT_ROOT / "build"
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
     old_zip = PROJECT_ROOT / ZIP_NAME
     if old_zip.exists():
         old_zip.unlink()
 
-    # Create directory structure
-    macos_dir = APP_DIR / "Contents" / "MacOS"
-    resources_dir = APP_DIR / "Contents" / "Resources"
-    macos_dir.mkdir(parents=True, exist_ok=True)
-    resources_dir.mkdir(parents=True, exist_ok=True)
+    icon_path = PROJECT_ROOT / "Contents" / "Resources" / "AppIcon.icns"
+    entry_script = PROJECT_ROOT / "Contents" / "MacOS" / "SleepTimer"
 
-    # Copy bundle contents
-    shutil.copy(PROJECT_ROOT / "Contents" / "Info.plist", APP_DIR / "Contents" / "Info.plist")
-    shutil.copy(PROJECT_ROOT / "Contents" / "MacOS" / "SleepTimer", macos_dir / "SleepTimer")
-    shutil.copy(PROJECT_ROOT / "Contents" / "MacOS" / "MenuBarTimer.py", macos_dir / "MenuBarTimer.py")
-    shutil.copy(PROJECT_ROOT / "Contents" / "Resources" / "AppIcon.icns", resources_dir / "AppIcon.icns")
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--noconfirm",
+        "--windowed",
+        "--name", "SleepTimer",
+        "--icon", str(icon_path),
+        "--osx-bundle-identifier", "com.local.sleeptimer",
+        "--paths", str(PROJECT_ROOT / "Contents" / "MacOS"),
+        "--hidden-import", "rumps",
+        "--hidden-import", "Foundation",
+        "--hidden-import", "MenuBarTimer",
+        "--distpath", str(DIST_DIR),
+        "--workpath", str(build_dir),
+        "--specpath", str(build_dir),
+        str(entry_script),
+    ]
+
+    subprocess.run(cmd, check=True)
+
+    # Overwrite default Info.plist with our comprehensive Info.plist
+    source_plist = PROJECT_ROOT / "Contents" / "Info.plist"
+    target_plist = APP_DIR / "Contents" / "Info.plist"
+    if source_plist.exists():
+        shutil.copy(source_plist, target_plist)
+
+    # Ensure executable permissions on main binary
+    make_executable(APP_DIR / "Contents" / "MacOS" / "SleepTimer")
+
+    # Ad-hoc sign the bundle
+    if shutil.which("codesign"):
+        subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(APP_DIR)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     # Copy distribution root files
     shutil.copy(PROJECT_ROOT / "requirements.txt", DIST_DIR / "requirements.txt")
     shutil.copy(PROJECT_ROOT / "install.sh", DIST_DIR / "install.sh")
-
-    # Set executable permissions
-    make_executable(macos_dir / "SleepTimer")
-    make_executable(macos_dir / "MenuBarTimer.py")
     make_executable(DIST_DIR / "install.sh")
+
+    # Clean up temporary build/ directory
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
 
     # Create release zip archive
     zip_path = PROJECT_ROOT / ZIP_NAME
@@ -69,8 +96,8 @@ def build() -> None:
                 zipf.write(full_path, arcname=str(rel_path))
 
     print("=== Build Complete! ===")
-    print(f"Application bundle: {APP_DIR}")
-    print(f"Release archive:    {zip_path}")
+    print(f"Standalone Application bundle: {APP_DIR}")
+    print(f"Release archive:               {zip_path}")
 
 
 def run_app() -> None:

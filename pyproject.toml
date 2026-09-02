@@ -7,7 +7,7 @@ authors = [
 ]
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.16"
 dependencies = [
     "rumps>=0.4.0",
     "pyobjc-framework-Cocoa>=9.0",
@@ -23,6 +23,7 @@ packages = [
 ]
 
 [tool.poetry.group.dev.dependencies]
+pyinstaller = ">=6.10.0"
 pytest = ">=8.0.0"
 pytest-cov = ">=4.1.0"
 flake8 = ">=7.0.0"

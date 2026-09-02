@@ -475,8 +475,11 @@ class SleepTimerAppController:
         self._thread.start()
 
         self.root.iconify()
-        bar_py = os.path.join(os.path.dirname(__file__), "MenuBarTimer.py")
-        self._bar_process = subprocess.Popen([sys.executable, bar_py, str(secs), str(os.getpid())])
+        if getattr(sys, "frozen", False):
+            self._bar_process = subprocess.Popen([sys.executable, "--menubar", str(secs), str(os.getpid())])
+        else:
+            bar_py = os.path.join(os.path.dirname(__file__), "MenuBarTimer.py")
+            self._bar_process = subprocess.Popen([sys.executable, bar_py, str(secs), str(os.getpid())])
 
     def stop(self):
         self._stop_evt.set()
@@ -554,6 +557,17 @@ SleepTimerApp = SleepTimerAppController
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--menubar":
+        try:
+            from MenuBarTimer import run_menubar
+        except ImportError:
+            sys.path.insert(0, os.path.dirname(__file__))
+            from MenuBarTimer import run_menubar
+        secs = int(sys.argv[2]) if len(sys.argv) > 2 else 1800
+        parent_pid = int(sys.argv[3]) if len(sys.argv) > 3 else None
+        run_menubar(secs, parent_pid)
+        sys.exit(0)
+
     root = tk.Tk()
     app = SleepTimerAppController(root)
     root.mainloop()

@@ -94,6 +94,19 @@ class TestSleepTimerAppController(unittest.TestCase):
         self.assertEqual(self.controller.view.start_btn.text, "Start Timer")
         mock_process.terminate.assert_called_once()
 
+    @patch("subprocess.Popen")
+    def test_start_lifecycle_frozen_bundle(self, mock_popen):
+        mock_process = MagicMock()
+        mock_popen.return_value = mock_process
+
+        with patch("sys.frozen", True, create=True):
+            self.controller.view.mins_var.set("15")
+            self.controller.start()
+            args, kwargs = mock_popen.call_args
+            self.assertEqual(args[0][1], "--menubar")
+            self.assertEqual(args[0][2], "900")
+            self.controller.stop()
+
     def test_toggle(self):
         with patch.object(self.controller, "start") as mock_start, \
              patch.object(self.controller, "stop") as mock_stop:
