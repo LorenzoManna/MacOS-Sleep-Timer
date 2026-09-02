@@ -361,6 +361,15 @@ class SleepTimerAppController:
         self.view.draw_progress_ring(1.0, 0, False)
         self.on_duration_changed()
 
+        # macOS Dock click handler (reopens window when user clicks app icon in Dock)
+        try:
+            self.root.createcommand("::tk::mac::ReopenApplication", self.bring_to_front)
+        except Exception:
+            pass
+
+        # Handle window close (red X button): hide if running, quit if stopped
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close_window)
+
     def _signal_keepalive(self):
         self.root.after(300, self._signal_keepalive)
 
@@ -474,7 +483,7 @@ class SleepTimerAppController:
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 
-        self.root.iconify()
+        self.root.withdraw()
         if getattr(sys, "frozen", False):
             self._bar_process = subprocess.Popen([sys.executable, "--menubar", str(secs), str(os.getpid())])
         else:
@@ -495,6 +504,12 @@ class SleepTimerAppController:
         if self._bar_process:
             self._bar_process.terminate()
             self._bar_process = None
+
+    def on_close_window(self):
+        if self.model.is_running:
+            self.root.withdraw()
+        else:
+            self.cancel()
 
     def cancel(self):
         if self.model.is_running:

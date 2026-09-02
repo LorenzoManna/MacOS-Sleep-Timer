@@ -154,6 +154,18 @@ class TestSleepTimerAppController(unittest.TestCase):
             self.controller.view.hours_var.set("12")
             mock_focus_set.assert_called_once()
 
+    def test_on_close_window_running_withdraws(self):
+        self.controller.model.is_running = True
+        with patch.object(self.controller.root, "withdraw") as mock_withdraw:
+            self.controller.on_close_window()
+            mock_withdraw.assert_called_once()
+
+    def test_on_close_window_stopped_cancels(self):
+        self.controller.model.is_running = False
+        with patch.object(self.controller, "cancel") as mock_cancel:
+            self.controller.on_close_window()
+            mock_cancel.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()
