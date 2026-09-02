@@ -32,35 +32,11 @@ SleepTimer allows you to easily set a sleep countdown for your Mac. Once the cou
 curl -fsSL https://raw.githubusercontent.com/LorenzoManna/MacOS-Sleep-Timer/main/install.sh | bash
 ```
 
-#### Option 2: Install via Git (One-liner)
+#### Option 2: Manual Download (.zip)
 
-```bash
-git clone https://github.com/LorenzoManna/MacOS-Sleep-Timer.git && cd MacOS-Sleep-Timer && ./install.sh
-```
-
-#### Option 3: Manual Download (.zip)
-
-1. Download `SleepTimer-v0.1.1-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
-2. Extract the downloaded `.zip` file.
-3. Open Terminal in the extracted folder and run:
-   ```bash
-   ./install.sh
-   ```
-4. Open **`SleepTimer.app`** from your **Applications** folder or Launchpad.
-
----
-
-### 🛡️ Why `sudo` is Required
-
-When downloading applications directly from GitHub or the web without an Apple Developer code-signing certificate, macOS automatically assigns a **quarantine flag** (`com.apple.quarantine`) to the downloaded files. This causes Gatekeeper to display an error stating:
-> *"Apple could not verify SleepTimer is free of malware..."*
-
-The `install.sh` script does three things:
-1. Automatically installs Python dependencies (`rumps`, `pyobjc-framework-Cocoa`) using `python3 -m pip install -r requirements.txt`.
-2. Moves `SleepTimer.app` into `/Applications` (requiring `sudo` administrative rights to write to system applications directory).
-3. Runs `sudo xattr -cr /Applications/SleepTimer.app`, which recursively clears all extended quarantine attributes (`-c`) and folder metadata (`-r`).
-
-Clearing the quarantine flag tells macOS Gatekeeper that you explicitly trust the application binary so it opens normally without security warnings.
+1. Download **`SleepTimer-v0.2.0-macOS.zip`** from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
+2. Extract the `.zip` file and drag **`SleepTimer.app`** into your **Applications** folder.
+3. **First Launch**: Right-click (or Control-click) `SleepTimer.app` in Applications ➔ select **Open** ➔ click **Open**. *(You only need to do this once).*
 
 
 ---

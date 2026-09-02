@@ -50,9 +50,18 @@ class TimerBar(rumps.App):
                 print("Error signaling stop timer:", e)
         rumps.quit_application()
 
+def run_menubar(remaining=1800, parent_pid=None):
+    try:
+        from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+        NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+    except Exception:
+        pass
+    app = TimerBar(remaining, parent_pid)
+    app.run()
+
+
 if __name__ == '__main__':
     remaining = int(sys.argv[1]) if len(sys.argv) > 1 else 1800
     parent_pid = int(sys.argv[2]) if len(sys.argv) > 2 else None
-    app = TimerBar(remaining, parent_pid)
-    app.run()
+    run_menubar(remaining, parent_pid)
 

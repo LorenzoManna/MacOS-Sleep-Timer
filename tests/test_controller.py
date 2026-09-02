@@ -94,6 +94,19 @@ class TestSleepTimerAppController(unittest.TestCase):
         self.assertEqual(self.controller.view.start_btn.text, "Start Timer")
         mock_process.terminate.assert_called_once()
 
+    @patch("subprocess.Popen")
+    def test_start_lifecycle_frozen_bundle(self, mock_popen):
+        mock_process = MagicMock()
+        mock_popen.return_value = mock_process
+
+        with patch("sys.frozen", True, create=True):
+            self.controller.view.mins_var.set("15")
+            self.controller.start()
+            args, kwargs = mock_popen.call_args
+            self.assertEqual(args[0][1], "--menubar")
+            self.assertEqual(args[0][2], "900")
+            self.controller.stop()
+
     def test_toggle(self):
         with patch.object(self.controller, "start") as mock_start, \
              patch.object(self.controller, "stop") as mock_stop:
@@ -140,6 +153,18 @@ class TestSleepTimerAppController(unittest.TestCase):
              patch.object(mins_box, "focus_set") as mock_focus_set:
             self.controller.view.hours_var.set("12")
             mock_focus_set.assert_called_once()
+
+    def test_on_close_window_running_withdraws(self):
+        self.controller.model.is_running = True
+        with patch.object(self.controller.root, "withdraw") as mock_withdraw:
+            self.controller.on_close_window()
+            mock_withdraw.assert_called_once()
+
+    def test_on_close_window_stopped_cancels(self):
+        self.controller.model.is_running = False
+        with patch.object(self.controller, "cancel") as mock_cancel:
+            self.controller.on_close_window()
+            mock_cancel.assert_called_once()
 
 
 if __name__ == "__main__":

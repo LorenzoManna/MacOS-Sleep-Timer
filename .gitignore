@@ -15,6 +15,7 @@ Thumbs.db
 # Build and Distribution Artifacts
 dist/
 build/
+*.spec
 *.zip
 *.egg-info/
 .venv/

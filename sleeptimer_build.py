@@ -9,7 +9,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 PROJECT_ROOT = Path(__file__).resolve().parent
 DIST_DIR = PROJECT_ROOT / "dist"
 APP_DIR = DIST_DIR / "SleepTimer.app"
@@ -24,53 +24,167 @@ def make_executable(path: Path) -> None:
 
 
 def build() -> None:
-    """Build macOS .app bundle and release zip archive."""
-    print("=== Building SleepTimer.app Bundle with Poetry Automation ===")
+    """Build standalone zero-dependency macOS .app bundle and release zip archive."""
+    print("=== Building Standalone SleepTimer.app Bundle with PyInstaller ===")
 
     # Clean previous builds
     if DIST_DIR.exists():
         shutil.rmtree(DIST_DIR)
+    build_dir = PROJECT_ROOT / "build"
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
     old_zip = PROJECT_ROOT / ZIP_NAME
     if old_zip.exists():
         old_zip.unlink()
 
-    # Create directory structure
-    macos_dir = APP_DIR / "Contents" / "MacOS"
-    resources_dir = APP_DIR / "Contents" / "Resources"
-    macos_dir.mkdir(parents=True, exist_ok=True)
-    resources_dir.mkdir(parents=True, exist_ok=True)
+    icon_path = PROJECT_ROOT / "Contents" / "Resources" / "AppIcon.icns"
+    entry_script = PROJECT_ROOT / "Contents" / "MacOS" / "SleepTimer"
 
-    # Copy bundle contents
-    shutil.copy(PROJECT_ROOT / "Contents" / "Info.plist", APP_DIR / "Contents" / "Info.plist")
-    shutil.copy(PROJECT_ROOT / "Contents" / "MacOS" / "SleepTimer", macos_dir / "SleepTimer")
-    shutil.copy(PROJECT_ROOT / "Contents" / "MacOS" / "MenuBarTimer.py", macos_dir / "MenuBarTimer.py")
-    shutil.copy(PROJECT_ROOT / "Contents" / "Resources" / "AppIcon.icns", resources_dir / "AppIcon.icns")
+    cmd = [
+        sys.executable, "-m", "PyInstaller",
+        "--noconfirm",
+        "--windowed",
+        "--name", "SleepTimer",
+        "--icon", str(icon_path),
+        "--osx-bundle-identifier", "com.local.sleeptimer",
+        "--paths", str(PROJECT_ROOT / "Contents" / "MacOS"),
+        "--hidden-import", "rumps",
+        "--hidden-import", "Foundation",
+        "--hidden-import", "AppKit",
+        "--hidden-import", "MenuBarTimer",
+        "--distpath", str(DIST_DIR),
+        "--workpath", str(build_dir),
+        "--specpath", str(build_dir),
+        str(entry_script),
+    ]
 
-    # Copy distribution root files
-    shutil.copy(PROJECT_ROOT / "requirements.txt", DIST_DIR / "requirements.txt")
-    shutil.copy(PROJECT_ROOT / "install.sh", DIST_DIR / "install.sh")
+    subprocess.run(cmd, check=True)
 
-    # Set executable permissions
-    make_executable(macos_dir / "SleepTimer")
-    make_executable(macos_dir / "MenuBarTimer.py")
-    make_executable(DIST_DIR / "install.sh")
+    # Overwrite default Info.plist with our comprehensive Info.plist
+    source_plist = PROJECT_ROOT / "Contents" / "Info.plist"
+    target_plist = APP_DIR / "Contents" / "Info.plist"
+    if source_plist.exists():
+        shutil.copy(source_plist, target_plist)
 
-    # Create release zip archive
+    # Ensure executable permissions on main binary
+    make_executable(APP_DIR / "Contents" / "MacOS" / "SleepTimer")
+
+    # Ad-hoc sign the bundle
+    if shutil.which("codesign"):
+        subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(APP_DIR)],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # Clean up temporary build/ directory
+    if build_dir.exists():
+        shutil.rmtree(build_dir)
+
+    # Remove redundant raw directory (dist/SleepTimer), leaving only SleepTimer.app
+    raw_dir = DIST_DIR / "SleepTimer"
+    if raw_dir.exists() and raw_dir.is_dir():
+        shutil.rmtree(raw_dir)
+
+    # Remove any leftover scripts from dist/
+    for leftover in ["install.sh", "install.command", "requirements.txt"]:
+        p = DIST_DIR / leftover
+        if p.exists():
+            p.unlink()
+
+    # Generate release README.txt (installation guide + security note + license)
+    readme_path = DIST_DIR / "README.txt"
+    readme_path.write_text(generate_release_readme(VERSION), encoding="utf-8")
+
+    # Create release zip archive with symlink and bundle preservation
     zip_path = PROJECT_ROOT / ZIP_NAME
-    print(f"Creating release archive: {ZIP_NAME}...")
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for file in ["install.sh", "requirements.txt"]:
-            zipf.write(DIST_DIR / file, arcname=file)
-
-        for root, _, files in os.walk(APP_DIR):
-            for file in files:
-                full_path = Path(root) / file
-                rel_path = full_path.relative_to(DIST_DIR)
-                zipf.write(full_path, arcname=str(rel_path))
+    create_release_archive(DIST_DIR, zip_path)
 
     print("=== Build Complete! ===")
-    print(f"Application bundle: {APP_DIR}")
-    print(f"Release archive:    {zip_path}")
+    print(f"Standalone Application bundle: {APP_DIR}")
+    print(f"Release README:                {readme_path}")
+    print(f"Release archive:               {zip_path}")
+
+
+def generate_release_readme(version: str) -> str:
+    """Generate clean plain-text README for release archive."""
+    license_file = PROJECT_ROOT / "LICENSE.txt"
+    if license_file.exists():
+        license_text = license_file.read_text(encoding="utf-8").strip()
+    else:
+        license_text = "MIT License - Copyright (c) 2026 Lorenzo Manna"
+
+    return f"""=====================================================
+  SleepTimer for macOS (v{version}) 😴
+=====================================================
+
+Thank you for downloading SleepTimer!
+A modern macOS utility for scheduling system sleep,
+screen lock, and hibernation.
+
+-----------------------------------------------------
+  HOW TO INSTALL
+-----------------------------------------------------
+1. Drag "SleepTimer.app" into your "Applications" folder.
+2. Launch SleepTimer from Applications, Launchpad, or Spotlight!
+
+-----------------------------------------------------
+  FIRST LAUNCH NOTE (macOS Security)
+-----------------------------------------------------
+Because SleepTimer is an open-source utility distributed outside
+the Mac App Store, macOS may display a message on first launch stating:
+"Apple cannot verify SleepTimer is free of malware..."
+
+To open SleepTimer easily without Terminal:
+1. Right-Click (or Control-Click) "SleepTimer.app" in Applications.
+2. Select "Open" from the context menu.
+3. Click "Open" in the dialog that appears.
+
+macOS will remember this approval permanently, and SleepTimer will
+open normally with a simple double-click from then on.
+
+-----------------------------------------------------
+  LICENSE
+-----------------------------------------------------
+{license_text}
+"""
+
+
+def create_release_archive(dist_dir: Path, zip_path: Path) -> None:
+    """Create release zip archive preserving symlinks, permissions, and code signatures."""
+    if zip_path.exists():
+        zip_path.unlink()
+
+    print(f"Creating release archive: {zip_path.name}...")
+
+    # Prefer macOS native ditto tool which guarantees 100% fidelity for .app bundles
+    if shutil.which("ditto"):
+        subprocess.run(
+            ["ditto", "-c", "-k", "--sequesterRsrc", str(dist_dir), str(zip_path)],
+            check=True,
+        )
+        return
+
+    # Fallback to zip utility with -y (preserve symlinks)
+    if shutil.which("zip"):
+        subprocess.run(
+            ["zip", "-y", "-r", "-q", str(zip_path.resolve()), "."],
+            cwd=str(dist_dir),
+            check=True,
+        )
+        return
+
+    # Fallback to Python zipfile with symlink preservation
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+        for root, _, files in os.walk(dist_dir):
+            for file in files:
+                full_path = Path(root) / file
+                rel_path = full_path.relative_to(dist_dir)
+                if full_path.is_symlink():
+                    link_target = os.readlink(full_path)
+                    zinfo = zipfile.ZipInfo(str(rel_path))
+                    zinfo.create_system = 3  # Unix
+                    zinfo.external_attr = 0o120755 << 16
+                    zipf.writestr(zinfo, link_target)
+                else:
+                    zipf.write(full_path, arcname=str(rel_path))
 
 
 def run_app() -> None:
