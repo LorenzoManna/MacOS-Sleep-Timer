@@ -1,6 +1,8 @@
-# A SleepTimer for MacOS 😴
+# SleepTimer for macOS 😴
 
-A sleek, modern macOS application and menu bar tray tool for scheduling system sleep and hibernation.
+**Fall asleep to your favorite movies, TV shows, podcasts, and music without worrying about your Mac staying on all night.**
+
+SleepTimer is a sleek, native macOS menu bar and countdown utility designed for bedtime viewing and listening. Set your timer, drift off to sleep, and let your Mac handle the rest.
 
 <p align="center">
   <img src="assets/screenshot.png" alt="SleepTimer Screenshot" width="500">
@@ -8,17 +10,22 @@ A sleek, modern macOS application and menu bar tray tool for scheduling system s
 
 ---
 
-### Overview
+### ✨ The Perfect Bedtime Companion
 
-SleepTimer allows you to easily set a sleep countdown for your Mac. Once the countdown finishes, your screen locks and your Mac safely goes to sleep.
+Do you love falling asleep to a movie on Netflix, videos on YouTube, or relaxing music on Spotify, but hate waking up to a bright screen and a dead battery at 3 AM?
 
-### Key Features
+**SleepTimer solves this gracefully:**
+When your countdown ends, SleepTimer puts your Mac and displays directly into sleep mode (`displaysleep`). Videos, music, and streams automatically stop playing immediately—saving battery, eliminating screen glare, and letting you rest in peace.
 
-- ⏱️ **Simple Time Entry**: Type exact hours, minutes, or seconds, or pick quick preset buttons (`15m`, `30m`, `45m`, `1h`, `2h`).
-- 🕒 **Live Clock Preview**: See the exact time your Mac will sleep as you type.
-- ⭕ **Visual Countdown Ring**: See remaining time at a glance with a clean circular ring.
-- 🔔 **Menu Bar Status**: Follow the countdown right from your Mac menu bar.
-- 🔒 **Auto Screen Lock & Sleep**: Locks your screen and puts your Mac to sleep when time runs out.
+*(Note: Rather than artificial screen-locking, SleepTimer safely triggers native macOS display and system sleep. This guarantees full compliance with macOS security standards while instantly halting media playback).*
+
+### 🚀 Key Features
+
+- 🍿 **Bedtime Media Sleep**: Videos and audio automatically stop when time runs out—ideal for movies, YouTube, Netflix, Spotify, and podcasts.
+- ⏱️ **Instant Time Entry**: Type exact hours, minutes, or seconds with auto-advance, or click quick presets (`15m`, `30m`, `45m`, `1h`, `2h`).
+- 🕒 **Target Bedtime Preview**: Displays the exact clock time your Mac will sleep as you enter your duration.
+- ⭕ **Smooth Circular Countdown**: Beautiful native dark-mode progress ring showing remaining time at a glance.
+- 🔔 **Discreet Menu Bar Timer**: Hides the window and minimizes to a lightweight menu bar status item, keeping your screen distraction-free while watching movies.
 
 ---
 

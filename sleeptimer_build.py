@@ -116,8 +116,10 @@ def generate_release_readme(version: str) -> str:
 =====================================================
 
 Thank you for downloading SleepTimer!
-A modern macOS utility for scheduling system sleep,
-screen lock, and hibernation.
+The perfect bedtime companion for your Mac. Fall asleep to your
+favorite movies, music, and podcasts without worrying about your
+Mac staying awake all night. SleepTimer puts your displays and
+system into sleep mode, automatically halting videos and music.
 
 -----------------------------------------------------
   HOW TO INSTALL
