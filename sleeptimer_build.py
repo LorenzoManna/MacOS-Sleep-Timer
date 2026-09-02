@@ -50,6 +50,7 @@ def build() -> None:
         "--paths", str(PROJECT_ROOT / "Contents" / "MacOS"),
         "--hidden-import", "rumps",
         "--hidden-import", "Foundation",
+        "--hidden-import", "AppKit",
         "--hidden-import", "MenuBarTimer",
         "--distpath", str(DIST_DIR),
         "--workpath", str(build_dir),

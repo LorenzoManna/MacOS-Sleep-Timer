@@ -51,6 +51,11 @@ class TimerBar(rumps.App):
         rumps.quit_application()
 
 def run_menubar(remaining=1800, parent_pid=None):
+    try:
+        from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+        NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+    except Exception:
+        pass
     app = TimerBar(remaining, parent_pid)
     app.run()
 

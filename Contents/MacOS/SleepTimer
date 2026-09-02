@@ -559,6 +559,11 @@ SleepTimerApp = SleepTimerAppController
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--menubar":
         try:
+            from AppKit import NSApplication, NSApplicationActivationPolicyAccessory
+            NSApplication.sharedApplication().setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+        except Exception:
+            pass
+        try:
             from MenuBarTimer import run_menubar
         except ImportError:
             sys.path.insert(0, os.path.dirname(__file__))
