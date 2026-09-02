@@ -31,7 +31,7 @@ MacOS-Sleep-Timer/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml          # GitHub Actions CI matrix (macOS 15, macOS 15 Intel, macOS 14)
-├── tests/                  # Unittest test suite (30 tests)
+├── tests/                  # Unittest test suite (32 tests)
 │   ├── test_model.py       # Domain model logic tests
 │   ├── test_controller.py  # GUI, auto-advance, zero fallback & lifecycle controller tests
 │   ├── test_power_service.py # Power management service & notification tests
@@ -60,9 +60,9 @@ MacOS-Sleep-Timer/
   - Independent menu bar status bar tool built using `rumps`.
   - Displays remaining countdown and allows opening the main window (`SIGUSR1`) or stopping the timer (`SIGUSR2`).
 - **`sleeptimer_build.py`**:
-  - Automated build script utilizing PyInstaller that packages a standalone, zero-dependency `dist/SleepTimer.app` and creates the `SleepTimer-v<version>-macOS.zip` distribution archive.
+  - Automated build script utilizing PyInstaller that packages a standalone, zero-dependency `dist/SleepTimer.app` and creates the `SleepTimer-v<version>-macOS.zip` consumer release archive (containing `SleepTimer.app` and `README.txt` with user setup and MIT license).
 - **`install.sh`**:
-  - Automatically detects standalone bundles (skipping Python runtime setup), copies `SleepTimer.app` to `/Applications`, and clears macOS quarantine flags (`/usr/bin/xattr -cr`).
+  - CLI installer for automated `curl | bash` and local developer execution; automatically detects standalone bundles, copies `SleepTimer.app` to `/Applications`, and clears macOS quarantine flags (`/usr/bin/xattr -cr`).
 
 ---
 
@@ -96,7 +96,7 @@ The CI pipeline in `.github/workflows/ci.yml` automatically triggers on every pu
   - `macos-14` (macOS Sonoma - Apple Silicon)
 - **Python Versions**: `3.11`, `3.12`, `3.13`
 
-Each matrix job validates `Info.plist`, runs the 29 unit tests, checks test coverage, and verifies packaging of `SleepTimer.app`.
+Each matrix job validates `Info.plist`, runs the 32 unit tests, checks test coverage, and verifies packaging of `SleepTimer.app`.
 
 ---
 

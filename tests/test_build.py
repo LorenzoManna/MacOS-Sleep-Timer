@@ -45,6 +45,14 @@ class TestBuildAutomation(unittest.TestCase):
             self.assertTrue(out_zip.exists())
             self.assertGreater(out_zip.stat().st_size, 0)
 
+    def test_generate_release_readme(self):
+        readme = sleeptimer_build.generate_release_readme("0.1.1")
+        self.assertIn("SleepTimer for macOS (v0.1.1)", readme)
+        self.assertIn("HOW TO INSTALL", readme)
+        self.assertIn("Applications", readme)
+        self.assertIn("FIRST LAUNCH NOTE", readme)
+        self.assertIn("LICENSE", readme)
+
 
 if __name__ == "__main__":
     unittest.main()

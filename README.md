@@ -38,26 +38,26 @@ curl -fsSL https://raw.githubusercontent.com/LorenzoManna/MacOS-Sleep-Timer/main
 git clone https://github.com/LorenzoManna/MacOS-Sleep-Timer.git && cd MacOS-Sleep-Timer && ./install.sh
 ```
 
-#### Option 3: Manual Download (.zip) — Easy Double-Click
+#### Option 3: Manual Download (.zip) — Drag & Drop
 
-1. Download `SleepTimer-v0.1.1-macOS.zip` from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
+1. Download **`SleepTimer-v0.1.1-macOS.zip`** from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
 2. Extract the downloaded `.zip` file.
-3. Double-click **`install.command`** (or run `./install.sh` in Terminal).
-4. Open **`SleepTimer.app`** from your **Applications** folder or Launchpad.
+3. Drag **`SleepTimer.app`** into your **Applications** folder.
+4. **First Launch (macOS Gatekeeper)**:
+   - Right-click (or Control-click) `SleepTimer.app` in Applications and choose **Open**.
+   - Click **Open** in the confirmation prompt. You only need to do this once!
 
 ---
 
-### 🛡️ Why `sudo` is Required
+### 🛡️ macOS Security & Gatekeeper Note
 
-When downloading applications directly from GitHub or the web without an Apple Developer code-signing certificate, macOS automatically assigns a **quarantine flag** (`com.apple.quarantine`) to the downloaded files. This causes Gatekeeper to display an error stating:
-> *"Apple could not verify SleepTimer is free of malware..."*
+Because SleepTimer is an open-source utility distributed outside the Mac App Store without an Apple Developer ID certificate, macOS automatically assigns a quarantine flag (`com.apple.quarantine`) to downloaded applications.
 
-The `install.sh` script handles everything automatically:
-1. Detects whether `SleepTimer.app` is the standalone release bundle (requiring **zero Python dependencies**) or a source checkout (installing runtime dependencies via `pip` if needed).
-2. Moves `SleepTimer.app` into `/Applications` (requiring `sudo` administrative rights to write to the system applications directory).
-3. Runs `sudo /usr/bin/xattr -cr /Applications/SleepTimer.app`, which recursively clears extended quarantine attributes (`-c`) and folder metadata (`-r`).
-
-Clearing the quarantine flag tells macOS Gatekeeper that you explicitly trust the application binary so it opens normally without security warnings.
+You have two easy ways to run it:
+1. **Standard Mac Method (Zero Terminal)**:
+   Right-click (or Control-click) `SleepTimer.app` in `/Applications` ➔ select **Open** ➔ click **Open**. macOS will remember your approval permanently.
+2. **Automated CLI Method (Terminal)**:
+   Run the `curl ... | bash` one-liner above or run `./install.sh`, which moves `SleepTimer.app` into `/Applications` and clears quarantine flags using `/usr/bin/xattr -cr`.
 
 
 ---

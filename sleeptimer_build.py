@@ -74,14 +74,6 @@ def build() -> None:
         subprocess.run(["codesign", "--force", "--deep", "--sign", "-", str(APP_DIR)],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    # Copy distribution root files
-    shutil.copy(PROJECT_ROOT / "requirements.txt", DIST_DIR / "requirements.txt")
-    shutil.copy(PROJECT_ROOT / "install.sh", DIST_DIR / "install.sh")
-    make_executable(DIST_DIR / "install.sh")
-    if (PROJECT_ROOT / "install.command").exists():
-        shutil.copy(PROJECT_ROOT / "install.command", DIST_DIR / "install.command")
-        make_executable(DIST_DIR / "install.command")
-
     # Clean up temporary build/ directory
     if build_dir.exists():
         shutil.rmtree(build_dir)
@@ -91,13 +83,68 @@ def build() -> None:
     if raw_dir.exists() and raw_dir.is_dir():
         shutil.rmtree(raw_dir)
 
+    # Remove any leftover scripts from dist/
+    for leftover in ["install.sh", "install.command", "requirements.txt"]:
+        p = DIST_DIR / leftover
+        if p.exists():
+            p.unlink()
+
+    # Generate release README.txt (installation guide + security note + license)
+    readme_path = DIST_DIR / "README.txt"
+    readme_path.write_text(generate_release_readme(VERSION), encoding="utf-8")
+
     # Create release zip archive with symlink and bundle preservation
     zip_path = PROJECT_ROOT / ZIP_NAME
     create_release_archive(DIST_DIR, zip_path)
 
     print("=== Build Complete! ===")
     print(f"Standalone Application bundle: {APP_DIR}")
+    print(f"Release README:                {readme_path}")
     print(f"Release archive:               {zip_path}")
+
+
+def generate_release_readme(version: str) -> str:
+    """Generate clean plain-text README for release archive."""
+    license_file = PROJECT_ROOT / "LICENSE.txt"
+    if license_file.exists():
+        license_text = license_file.read_text(encoding="utf-8").strip()
+    else:
+        license_text = "MIT License - Copyright (c) 2026 Lorenzo Manna"
+
+    return f"""=====================================================
+  SleepTimer for macOS (v{version}) 😴
+=====================================================
+
+Thank you for downloading SleepTimer!
+A modern macOS utility for scheduling system sleep,
+screen lock, and hibernation.
+
+-----------------------------------------------------
+  HOW TO INSTALL
+-----------------------------------------------------
+1. Drag "SleepTimer.app" into your "Applications" folder.
+2. Launch SleepTimer from Applications, Launchpad, or Spotlight!
+
+-----------------------------------------------------
+  FIRST LAUNCH NOTE (macOS Security)
+-----------------------------------------------------
+Because SleepTimer is an open-source utility distributed outside
+the Mac App Store, macOS may display a message on first launch stating:
+"Apple cannot verify SleepTimer is free of malware..."
+
+To open SleepTimer easily without Terminal:
+1. Right-Click (or Control-Click) "SleepTimer.app" in Applications.
+2. Select "Open" from the context menu.
+3. Click "Open" in the dialog that appears.
+
+macOS will remember this approval permanently, and SleepTimer will
+open normally with a simple double-click from then on.
+
+-----------------------------------------------------
+  LICENSE
+-----------------------------------------------------
+{license_text}
+"""
 
 
 def create_release_archive(dist_dir: Path, zip_path: Path) -> None:
