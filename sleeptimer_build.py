@@ -83,6 +83,11 @@ def build() -> None:
     if build_dir.exists():
         shutil.rmtree(build_dir)
 
+    # Remove redundant raw directory (dist/SleepTimer), leaving only SleepTimer.app
+    raw_dir = DIST_DIR / "SleepTimer"
+    if raw_dir.exists() and raw_dir.is_dir():
+        shutil.rmtree(raw_dir)
+
     # Create release zip archive with symlink and bundle preservation
     zip_path = PROJECT_ROOT / ZIP_NAME
     create_release_archive(DIST_DIR, zip_path)
