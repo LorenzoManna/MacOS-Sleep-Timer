@@ -78,6 +78,9 @@ def build() -> None:
     shutil.copy(PROJECT_ROOT / "requirements.txt", DIST_DIR / "requirements.txt")
     shutil.copy(PROJECT_ROOT / "install.sh", DIST_DIR / "install.sh")
     make_executable(DIST_DIR / "install.sh")
+    if (PROJECT_ROOT / "install.command").exists():
+        shutil.copy(PROJECT_ROOT / "install.command", DIST_DIR / "install.command")
+        make_executable(DIST_DIR / "install.command")
 
     # Clean up temporary build/ directory
     if build_dir.exists():

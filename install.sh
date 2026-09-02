@@ -161,3 +161,9 @@ echo "=========================================="
 echo "  🎉 SleepTimer successfully installed!"
 echo "=========================================="
 echo "You can now open SleepTimer from your Applications folder, Spotlight, or Launchpad."
+
+if [ -t 0 ]; then
+    echo ""
+    read -n 1 -s -r -p "Press any key to close this window..."
+    echo ""
+fi
