@@ -31,7 +31,7 @@ MacOS-Sleep-Timer/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml          # GitHub Actions CI matrix (macOS 15, macOS 15 Intel, macOS 14)
-├── tests/                  # Unittest test suite (32 tests)
+├── tests/                  # Unittest test suite (34 tests)
 │   ├── test_model.py       # Domain model logic tests
 │   ├── test_controller.py  # GUI, auto-advance, zero fallback & lifecycle controller tests
 │   ├── test_power_service.py # Power management service & notification tests
@@ -96,7 +96,7 @@ The CI pipeline in `.github/workflows/ci.yml` automatically triggers on every pu
   - `macos-14` (macOS Sonoma - Apple Silicon)
 - **Python Versions**: `3.11`, `3.12`, `3.13`
 
-Each matrix job validates `Info.plist`, runs the 32 unit tests, checks test coverage, and verifies packaging of `SleepTimer.app`.
+Each matrix job validates `Info.plist`, runs the 34 unit tests, checks test coverage, and verifies packaging of `SleepTimer.app`.
 
 ---
 

@@ -1,6 +1,6 @@
 [project]
 name = "macos-sleep-timer"
-version = "0.1.1"
+version = "0.2.0"
 description = "A sleek, modern macOS application and menu bar tray tool for scheduling system sleep and hibernation."
 authors = [
     { name = "Lorenzo Manna" }

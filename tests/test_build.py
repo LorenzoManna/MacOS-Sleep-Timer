@@ -9,7 +9,7 @@ import sleeptimer_build
 
 class TestBuildAutomation(unittest.TestCase):
     def test_version_defined(self):
-        self.assertEqual(sleeptimer_build.VERSION, "0.1.1")
+        self.assertEqual(sleeptimer_build.VERSION, "0.2.0")
 
     def test_project_root_exists(self):
         self.assertTrue(sleeptimer_build.PROJECT_ROOT.exists())
@@ -46,8 +46,8 @@ class TestBuildAutomation(unittest.TestCase):
             self.assertGreater(out_zip.stat().st_size, 0)
 
     def test_generate_release_readme(self):
-        readme = sleeptimer_build.generate_release_readme("0.1.1")
-        self.assertIn("SleepTimer for macOS (v0.1.1)", readme)
+        readme = sleeptimer_build.generate_release_readme("0.2.0")
+        self.assertIn("SleepTimer for macOS (v0.2.0)", readme)
         self.assertIn("HOW TO INSTALL", readme)
         self.assertIn("Applications", readme)
         self.assertIn("FIRST LAUNCH NOTE", readme)

@@ -38,7 +38,7 @@ elif [ -n "$SCRIPT_DIR" ] && [ -d "$SCRIPT_DIR/Contents" ]; then
 else
     # Remote curl/pipe mode: download from GitHub
     echo "📥 Downloading latest SleepTimer release..."
-    ZIP_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/latest/download/SleepTimer-v0.1.1-macOS.zip"
+    ZIP_URL="https://github.com/$REPO_OWNER/$REPO_NAME/releases/latest/download/SleepTimer-v0.2.0-macOS.zip"
     FALLBACK_URL="https://github.com/$REPO_OWNER/$REPO_NAME/archive/refs/heads/main.zip"
     
     if curl -fsSL -o "$TEMP_DIR/bundle.zip" "$ZIP_URL" 2>/dev/null; then

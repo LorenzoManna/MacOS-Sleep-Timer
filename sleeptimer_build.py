@@ -9,7 +9,7 @@ import sys
 import zipfile
 from pathlib import Path
 
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 PROJECT_ROOT = Path(__file__).resolve().parent
 DIST_DIR = PROJECT_ROOT / "dist"
 APP_DIR = DIST_DIR / "SleepTimer.app"
