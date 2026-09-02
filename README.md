@@ -38,26 +38,11 @@ curl -fsSL https://raw.githubusercontent.com/LorenzoManna/MacOS-Sleep-Timer/main
 git clone https://github.com/LorenzoManna/MacOS-Sleep-Timer.git && cd MacOS-Sleep-Timer && ./install.sh
 ```
 
-#### Option 3: Manual Download (.zip) — Drag & Drop
+#### Option 3: Manual Download (.zip)
 
 1. Download **`SleepTimer-v0.1.1-macOS.zip`** from [GitHub Releases](https://github.com/LorenzoManna/MacOS-Sleep-Timer/releases).
-2. Extract the downloaded `.zip` file.
-3. Drag **`SleepTimer.app`** into your **Applications** folder.
-4. **First Launch (macOS Gatekeeper)**:
-   - Right-click (or Control-click) `SleepTimer.app` in Applications and choose **Open**.
-   - Click **Open** in the confirmation prompt. You only need to do this once!
-
----
-
-### 🛡️ macOS Security & Gatekeeper Note
-
-Because SleepTimer is an open-source utility distributed outside the Mac App Store without an Apple Developer ID certificate, macOS automatically assigns a quarantine flag (`com.apple.quarantine`) to downloaded applications.
-
-You have two easy ways to run it:
-1. **Standard Mac Method (Zero Terminal)**:
-   Right-click (or Control-click) `SleepTimer.app` in `/Applications` ➔ select **Open** ➔ click **Open**. macOS will remember your approval permanently.
-2. **Automated CLI Method (Terminal)**:
-   Run the `curl ... | bash` one-liner above or run `./install.sh`, which moves `SleepTimer.app` into `/Applications` and clears quarantine flags using `/usr/bin/xattr -cr`.
+2. Extract the `.zip` file and drag **`SleepTimer.app`** into your **Applications** folder.
+3. **First Launch**: Right-click (or Control-click) `SleepTimer.app` in Applications ➔ select **Open** ➔ click **Open**. *(You only need to do this once).*
 
 
 ---
