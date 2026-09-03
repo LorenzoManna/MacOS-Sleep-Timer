@@ -46,11 +46,9 @@ curl -fsSL https://raw.githubusercontent.com/LorenzoManna/MacOS-Sleep-Timer/main
 
 ### 🎓 Why Python & Not Swift?
 
-While native macOS applications are traditionally built with Swift and Xcode, **SleepTimer was created as an academic project** to offer an accessible, introductory pathway to learning real-world programming and software engineering practices:
+While native macOS applications are traditionally built with Swift and Xcode, SleepTimer was created as an academic project to offer an accessible, introductory pathway to learning real-world programming and software engineering practices.
 
-- **Approachable Learning**: Python provides an intuitive, readable foundation that lets learners focus on core concepts, design patterns, and clean code rather than steep syntax hurdles or heavy Xcode toolchains.
-- **Software Engineering in Practice**: The codebase serves as a practical demonstration of essential engineering disciplines—Model-View-Controller (MVC) separation, Dependency Inversion, automated testing (`unittest`), CI/CD test matrices across macOS architectures, and standalone application bundling.
-- **Native macOS Interoperability**: Demonstrates how high-level languages can interface directly with native Apple Cocoa frameworks (`pyobjc`, `Foundation`, `AppKit`, `rumps`) and system services.
+To provide a seamless end-user experience, the codebase is compiled into a standalone macOS `.app` bundle using PyInstaller and Apple `ditto`. This packages the runtime into a self-contained Mach-O binary, allowing SleepTimer to run natively on macOS with zero external Python prerequisites.
 
 ### Prerequisites
 
