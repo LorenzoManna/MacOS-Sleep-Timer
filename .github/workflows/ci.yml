@@ -64,3 +64,18 @@ jobs:
           poetry run build-app
           test -d dist/SleepTimer.app
           test -f SleepTimer-v*.zip
+
+      # Step 9: Verify code signature and Gatekeeper policy assessment
+      - name: 🛡️ Verify Code Signature & Gatekeeper Status
+        run: |
+          echo "=== 1. Inspecting Mach-O Code Signature ==="
+          codesign -dvvv dist/SleepTimer.app
+
+          echo "=== 2. Strict Signature & Sealed Resources Verification ==="
+          codesign --verify --deep --strict dist/SleepTimer.app
+
+          echo "=== 3. Checking System Gatekeeper Status ==="
+          spctl --status
+
+          echo "=== 4. Assessing Gatekeeper Policy ==="
+          spctl -a -t exec -vvv dist/SleepTimer.app || true

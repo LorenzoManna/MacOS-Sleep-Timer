@@ -96,7 +96,7 @@ The CI pipeline in `.github/workflows/ci.yml` automatically triggers on every pu
   - `macos-14` (macOS Sonoma - Apple Silicon)
 - **Python Versions**: `3.11`, `3.12`, `3.13`
 
-Each matrix job validates `Info.plist`, runs the 34 unit tests, checks test coverage, and verifies packaging of `SleepTimer.app`.
+Each matrix job validates `Info.plist`, runs the 34 unit tests, checks test coverage, verifies packaging of `SleepTimer.app`, and assesses code signature integrity and Gatekeeper policy.
 
 ---
 
